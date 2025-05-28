@@ -1,0 +1,629 @@
+"use client"
+
+import { useState } from "react"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts"
+import { TrendingUp, TrendingDown, Star, Calendar, Eye, MessageSquare, Phone, MapPin, Clock, Award } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+
+export default function BusinessDashboard() {
+  const [timeRange, setTimeRange] = useState("7d")
+
+  // Mock data - in real app, this would come from API
+  const businessStats = {
+    totalViews: 2847,
+    viewsChange: 12.5,
+    totalReviews: 89,
+    reviewsChange: 8.2,
+    averageRating: 4.6,
+    ratingChange: 0.3,
+    totalCalls: 156,
+    callsChange: -2.1,
+    bookings: 45,
+    bookingsChange: 15.8,
+  }
+
+  const revenueData = [
+    { month: "Jan", revenue: 4200, bookings: 32 },
+    { month: "Feb", revenue: 3800, bookings: 28 },
+    { month: "Mar", revenue: 5100, bookings: 42 },
+    { month: "Apr", revenue: 4600, bookings: 38 },
+    { month: "May", revenue: 5800, bookings: 48 },
+    { month: "Jun", revenue: 6200, bookings: 52 },
+  ]
+
+  const viewsData = [
+    { day: "Mon", views: 245 },
+    { day: "Tue", views: 312 },
+    { day: "Wed", views: 189 },
+    { day: "Thu", views: 278 },
+    { day: "Fri", views: 356 },
+    { day: "Sat", views: 423 },
+    { day: "Sun", views: 298 },
+  ]
+
+  const trafficSources = [
+    { name: "Direct Search", value: 45, color: "#0088FE" },
+    { name: "Google Maps", value: 30, color: "#00C49F" },
+    { name: "Social Media", value: 15, color: "#FFBB28" },
+    { name: "Referrals", value: 10, color: "#FF8042" },
+  ]
+
+  const recentReviews = [
+    {
+      id: 1,
+      customer: "Sarah Johnson",
+      rating: 5,
+      comment: "Amazing service and great atmosphere! Highly recommend.",
+      date: "2 hours ago",
+      verified: true,
+    },
+    {
+      id: 2,
+      customer: "Mike Chen",
+      rating: 4,
+      comment: "Good food and friendly staff. Will definitely come back.",
+      date: "1 day ago",
+      verified: true,
+    },
+    {
+      id: 3,
+      customer: "Emma Davis",
+      rating: 5,
+      comment: "Best coffee in town! The baristas are very skilled.",
+      date: "2 days ago",
+      verified: false,
+    },
+  ]
+
+  const upcomingBookings = [
+    {
+      id: 1,
+      customer: "John Smith",
+      service: "Consultation",
+      date: "Today",
+      time: "2:00 PM",
+      status: "confirmed",
+    },
+    {
+      id: 2,
+      customer: "Lisa Wilson",
+      service: "Haircut",
+      date: "Tomorrow",
+      time: "10:30 AM",
+      status: "pending",
+    },
+    {
+      id: 3,
+      customer: "David Brown",
+      service: "Massage",
+      date: "Dec 28",
+      time: "3:00 PM",
+      status: "confirmed",
+    },
+  ]
+
+  const StatCard = ({ title, value, change, icon: Icon, prefix = "", suffix = "" }) => (
+    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-gray-600">{title}</p>
+            <p className="text-2xl font-bold text-gray-900">
+              {prefix}
+              {value}
+              {suffix}
+            </p>
+            <div className="flex items-center mt-1">
+              {change > 0 ? (
+                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+              )}
+              <span className={`text-sm ${change > 0 ? "text-green-600" : "text-red-600"}`}>
+                {Math.abs(change)}% from last week
+              </span>
+            </div>
+          </div>
+          <div className="p-3 bg-blue-50 rounded-full">
+            <Icon className="h-6 w-6 text-blue-600" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Header */}
+      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Business Dashboard</h1>
+              <p className="text-gray-600">Track your business performance and customer engagement</p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline">Export Report</Button>
+              <Button>Upgrade Plan</Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <StatCard
+            title="Profile Views"
+            value={businessStats.totalViews.toLocaleString()}
+            change={businessStats.viewsChange}
+            icon={Eye}
+          />
+          <StatCard
+            title="Customer Reviews"
+            value={businessStats.totalReviews}
+            change={businessStats.reviewsChange}
+            icon={MessageSquare}
+          />
+          <StatCard
+            title="Average Rating"
+            value={businessStats.averageRating}
+            change={businessStats.ratingChange}
+            icon={Star}
+            suffix="/5"
+          />
+          <StatCard
+            title="Phone Calls"
+            value={businessStats.totalCalls}
+            change={businessStats.callsChange}
+            icon={Phone}
+          />
+          <StatCard
+            title="Bookings"
+            value={businessStats.bookings}
+            change={businessStats.bookingsChange}
+            icon={Calendar}
+          />
+        </div>
+
+        <Tabs defaultValue="analytics" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="reviews">Reviews</TabsTrigger>
+            <TabsTrigger value="bookings">Bookings</TabsTrigger>
+            <TabsTrigger value="insights">Insights</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="analytics" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Revenue Chart */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>Revenue & Bookings</CardTitle>
+                  <CardDescription>Monthly performance overview</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={revenueData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="revenue" fill="#0A558C" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Views Chart */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>Profile Views</CardTitle>
+                  <CardDescription>Daily views this week</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={viewsData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="day" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="views" stroke="#0A558C" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Traffic Sources */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>Traffic Sources</CardTitle>
+                  <CardDescription>Where your customers find you</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie data={trafficSources} cx="50%" cy="50%" innerRadius={40} outerRadius={80} dataKey="value">
+                        {trafficSources.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 space-y-2">
+                    {trafficSources.map((source, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: source.color }} />
+                          <span className="text-sm">{source.name}</span>
+                        </div>
+                        <span className="text-sm font-medium">{source.value}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Performance Score */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>Performance Score</CardTitle>
+                  <CardDescription>Overall business health</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-green-600 mb-2">85</div>
+                    <Badge className="bg-green-100 text-green-800">Excellent</Badge>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Customer Satisfaction</span>
+                        <span>92%</span>
+                      </div>
+                      <Progress value={92} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Response Rate</span>
+                        <span>78%</span>
+                      </div>
+                      <Progress value={78} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Profile Completeness</span>
+                        <span>85%</span>
+                      </div>
+                      <Progress value={85} className="h-2" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Quick Actions */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                  <CardDescription>Manage your business</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button className="w-full justify-start" variant="outline">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    Update Business Hours
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    <Star className="h-4 w-4 mr-2" />
+                    Respond to Reviews
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Manage Bookings
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    <Award className="h-4 w-4 mr-2" />
+                    Promote Business
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="reviews" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                  <CardHeader>
+                    <CardTitle>Recent Reviews</CardTitle>
+                    <CardDescription>Latest customer feedback</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {recentReviews.map((review) => (
+                        <div key={review.id} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{review.customer}</span>
+                              {review.verified && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Verified
+                                </Badge>
+                              )}
+                            </div>
+                            <span className="text-sm text-gray-500">{review.date}</span>
+                          </div>
+                          <div className="flex items-center gap-1 mb-2">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-4 w-4 ${
+                                  i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-sm text-gray-600 mb-3">{review.comment}</p>
+                          <Button size="sm" variant="outline">
+                            Reply
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div>
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                  <CardHeader>
+                    <CardTitle>Review Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-blue-600 mb-1">4.6</div>
+                      <div className="flex justify-center gap-1 mb-2">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${i < 4.6 ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-sm text-gray-600">Based on {businessStats.totalReviews} reviews</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      {[5, 4, 3, 2, 1].map((stars) => (
+                        <div key={stars} className="flex items-center gap-2">
+                          <span className="text-sm w-8">{stars}★</span>
+                          <Progress
+                            value={stars === 5 ? 65 : stars === 4 ? 25 : stars === 3 ? 8 : 2}
+                            className="flex-1 h-2"
+                          />
+                          <span className="text-sm text-gray-500 w-8">
+                            {stars === 5 ? "65%" : stars === 4 ? "25%" : stars === 3 ? "8%" : "2%"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="bookings" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>Upcoming Bookings</CardTitle>
+                  <CardDescription>Your scheduled appointments</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {upcomingBookings.map((booking) => (
+                      <div key={booking.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">{booking.customer}</h4>
+                          <p className="text-sm text-gray-600">{booking.service}</p>
+                          <p className="text-sm text-gray-500">
+                            {booking.date} at {booking.time}
+                          </p>
+                        </div>
+                        <Badge variant={booking.status === "confirmed" ? "default" : "secondary"}>
+                          {booking.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>Booking Analytics</CardTitle>
+                  <CardDescription>Appointment trends and insights</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">45</div>
+                      <div className="text-sm text-gray-600">This Month</div>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">38</div>
+                      <div className="text-sm text-gray-600">Last Month</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Peak Hours (2-4 PM)</span>
+                        <span>35%</span>
+                      </div>
+                      <Progress value={35} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Weekend Bookings</span>
+                        <span>28%</span>
+                      </div>
+                      <Progress value={28} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Repeat Customers</span>
+                        <span>42%</span>
+                      </div>
+                      <Progress value={42} className="h-2" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="insights" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>Business Insights</CardTitle>
+                  <CardDescription>AI-powered recommendations</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Alert>
+                    <TrendingUp className="h-4 w-4" />
+                    <AlertDescription>
+                      Your profile views increased by 25% after updating your business hours. Consider adding more
+                      photos to boost engagement further.
+                    </AlertDescription>
+                  </Alert>
+
+                  <Alert>
+                    <Star className="h-4 w-4" />
+                    <AlertDescription>
+                      Customers frequently mention "great coffee" in reviews. Highlight your coffee specialties in your
+                      description.
+                    </AlertDescription>
+                  </Alert>
+
+                  <Alert>
+                    <Clock className="h-4 w-4" />
+                    <AlertDescription>
+                      Most customer calls happen between 2-4 PM. Consider having extra staff during these peak hours.
+                    </AlertDescription>
+                  </Alert>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>Competitor Analysis</CardTitle>
+                  <CardDescription>How you compare to similar businesses</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Average Rating</span>
+                      <span>Above Average</span>
+                    </div>
+                    <Progress value={85} className="h-2" />
+                    <p className="text-xs text-gray-500 mt-1">Your rating: 4.6 vs Industry: 4.2</p>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Response Rate</span>
+                      <span>Good</span>
+                    </div>
+                    <Progress value={70} className="h-2" />
+                    <p className="text-xs text-gray-500 mt-1">Your rate: 78% vs Industry: 65%</p>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Photo Count</span>
+                      <span>Below Average</span>
+                    </div>
+                    <Progress value={40} className="h-2" />
+                    <p className="text-xs text-gray-500 mt-1">Your photos: 8 vs Industry: 15</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>Business Information</CardTitle>
+                  <CardDescription>Update your business details</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button className="w-full justify-start" variant="outline">
+                    Edit Business Profile
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    Manage Photos
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    Update Contact Info
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    Business Hours
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle>Account Settings</CardTitle>
+                  <CardDescription>Manage your account preferences</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button className="w-full justify-start" variant="outline">
+                    Notification Settings
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    Privacy Settings
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    Billing & Subscription
+                  </Button>
+                  <Button className="w-full justify-start" variant="outline">
+                    API Access
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  )
+}
