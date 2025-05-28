@@ -12,6 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AuthHeader } from "@/components/auth-header"
+import { Footer } from "@/components/footer"
 import Link from "next/link"
 
 export default function BusinessRegistrationPage() {
@@ -172,8 +174,10 @@ export default function BusinessRegistrationPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
+      <AuthHeader />
+
+      {/* Registration Header */}
+      <div className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -194,13 +198,13 @@ export default function BusinessRegistrationPage() {
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         {/* Progress Header */}
         <div className="max-w-4xl mx-auto mb-8">
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Register Your Business</h1>
+            <h1 className="text-3xl font-bold text-[#0A558C] mb-2">Register Your Business</h1>
             <p className="text-lg text-gray-600">Join Mtaani and grow your local presence</p>
           </div>
 
@@ -671,11 +675,11 @@ export default function BusinessRegistrationPage() {
                 </Button>
 
                 {currentStep < steps.length ? (
-                  <Button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700">
+                  <Button onClick={handleNext} className="bg-[#0A558C] hover:bg-[#084b7c]">
                     Next Step
                   </Button>
                 ) : (
-                  <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700">
+                  <Button onClick={handleSubmit} className="bg-[#0A558C] hover:bg-[#084b7c]">
                     Complete Registration
                   </Button>
                 )}
@@ -684,6 +688,7 @@ export default function BusinessRegistrationPage() {
           </Card>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

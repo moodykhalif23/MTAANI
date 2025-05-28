@@ -15,13 +15,16 @@ import {
   Pie,
   Cell,
 } from "recharts"
-import { TrendingUp, TrendingDown, Star, Calendar, Eye, MessageSquare, Phone, MapPin, Clock, Award } from "lucide-react"
+import { TrendingUp, TrendingDown, Star, Calendar, Eye, MessageSquare, Phone, MapPin, Clock, Award, List } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AuthHeader } from "@/components/auth-header"
+import { Footer } from "@/components/footer"
+import Link from "next/link"
 
 export default function BusinessDashboard() {
   const [timeRange, setTimeRange] = useState("7d")
@@ -152,12 +155,14 @@ export default function BusinessDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
+      <AuthHeader />
+
+      {/* Dashboard Header */}
+      <div className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Business Dashboard</h1>
+              <h1 className="text-2xl font-bold text-[#0A558C]">Business Dashboard</h1>
               <p className="text-gray-600">Track your business performance and customer engagement</p>
             </div>
             <div className="flex gap-3">
@@ -166,7 +171,7 @@ export default function BusinessDashboard() {
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         {/* Key Metrics */}
@@ -331,6 +336,12 @@ export default function BusinessDashboard() {
                   <CardDescription>Manage your business</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  <Link href="/business/menu">
+                    <Button className="w-full justify-start" variant="outline">
+                      <List className="h-4 w-4 mr-2" />
+                      Manage Menu
+                    </Button>
+                  </Link>
                   <Button className="w-full justify-start" variant="outline">
                     <MapPin className="h-4 w-4 mr-2" />
                     Update Business Hours
@@ -403,7 +414,7 @@ export default function BusinessDashboard() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="text-center">
-                      <div className="text-3xl font-bold text-blue-600 mb-1">4.6</div>
+                      <div className="text-3xl font-bold text-[#0A558C] mb-1">4.6</div>
                       <div className="flex justify-center gap-1 mb-2">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star
@@ -470,7 +481,7 @@ export default function BusinessDashboard() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">45</div>
+                      <div className="text-2xl font-bold text-[#0A558C]">45</div>
                       <div className="text-sm text-gray-600">This Month</div>
                     </div>
                     <div className="text-center p-3 bg-green-50 rounded-lg">
@@ -624,6 +635,7 @@ export default function BusinessDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+      <Footer />
     </div>
   )
 }

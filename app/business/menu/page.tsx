@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import AuthHeader from "@/components/AuthHeader" // Import AuthHeader component
+import { AuthHeader } from "@/components/auth-header"
+import { Footer } from "@/components/footer"
 
 interface MenuItem {
   id: string
@@ -154,7 +155,7 @@ export default function DigitalMenuPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Digital Menu Manager</h1>
+              <h1 className="text-2xl font-bold text-[#0A558C]">Digital Menu Manager</h1>
               <p className="text-gray-600">Manage your menu items and categories</p>
             </div>
             <div className="flex gap-3">
@@ -612,6 +613,7 @@ export default function DigitalMenuPage() {
           )}
         </DialogContent>
       </Dialog>
+      <Footer />
     </div>
   )
 }

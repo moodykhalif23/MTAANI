@@ -118,9 +118,9 @@ export function AuthHeader() {
                   </DropdownMenuItem>
                   {user.role === "business_owner" && (
                     <DropdownMenuItem asChild>
-                      <Link href="/submit-business" className="cursor-pointer">
+                      <Link href="/business/dashboard" className="cursor-pointer">
                         <Building className="mr-2 h-4 w-4" />
-                        <span>My Business</span>
+                        <span>Business Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -138,6 +138,14 @@ export function AuthHeader() {
                       <span>Create Event</span>
                     </Link>
                   </DropdownMenuItem>
+                  {user.role !== "business_owner" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/submit-business" className="cursor-pointer">
+                        <Building className="mr-2 h-4 w-4" />
+                        <span>List Your Business</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600">
                     <LogOut className="mr-2 h-4 w-4" />

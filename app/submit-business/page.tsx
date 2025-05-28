@@ -12,10 +12,16 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AuthHeader } from "@/components/auth-header"
+import { Footer } from "@/components/footer"
 import Link from "next/link"
 
 export default function SubmitBusinessPage() {
   const [currentStep, setCurrentStep] = useState(1)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState("")
+  const [uploadedImages, setUploadedImages] = useState<File[]>([])
   const [formData, setFormData] = useState({
     // Basic Information
     businessName: "",
@@ -45,8 +51,8 @@ export default function SubmitBusinessPage() {
 
     // Additional Details
     priceRange: "",
-    features: [],
-    images: [],
+    features: [] as string[],
+    images: [] as string[],
     socialMedia: {
       facebook: "",
       instagram: "",
@@ -120,23 +126,114 @@ export default function SubmitBusinessPage() {
       hours: {
         ...prev.hours,
         [day]: {
-          ...prev.hours[day],
+          ...(prev.hours as any)[day],
           [field]: value,
         },
       },
     }))
   }
 
-  const handleSubmit = () => {
-    // Handle form submission
-    console.log("Submitting business:", formData)
-    // In real app, this would make an API call
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (files) {
+      const newImages = Array.from(files).slice(0, 10 - uploadedImages.length) // Limit to 10 total
+      setUploadedImages(prev => [...prev, ...newImages])
+    }
+  }
+
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const validateForm = () => {
+    const errors = []
+    if (!formData.businessName.trim()) errors.push("Business name is required")
+    if (!formData.category) errors.push("Category is required")
+    if (!formData.description.trim()) errors.push("Description is required")
+    if (!formData.address.trim()) errors.push("Address is required")
+    if (!formData.phone.trim()) errors.push("Phone number is required")
+    if (!formData.email.trim()) errors.push("Email is required")
+
+    return errors
+  }
+
+  const handleSubmit = async () => {
+    const errors = validateForm()
+    if (errors.length > 0) {
+      setSubmitError(errors.join(", "))
+      return
+    }
+
+    setIsSubmitting(true)
+    setSubmitError("")
+
+    try {
+      // Simulate API call
+      const submissionData = {
+        ...formData,
+        images: uploadedImages.map(file => file.name),
+        submittedAt: new Date().toISOString(),
+        status: "pending_approval"
+      }
+
+      console.log("Submitting business for approval:", submissionData)
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+      setSubmitSuccess(true)
+
+      // Reset form after successful submission
+      setTimeout(() => {
+        setCurrentStep(1)
+        setFormData({
+          businessName: "",
+          category: "",
+          description: "",
+          longDescription: "",
+          address: "",
+          city: "",
+          state: "",
+          zipCode: "",
+          phone: "",
+          email: "",
+          website: "",
+          hours: {
+            monday: { open: "", close: "", closed: false },
+            tuesday: { open: "", close: "", closed: false },
+            wednesday: { open: "", close: "", closed: false },
+            thursday: { open: "", close: "", closed: false },
+            friday: { open: "", close: "", closed: false },
+            saturday: { open: "", close: "", closed: false },
+            sunday: { open: "", close: "", closed: false },
+          },
+          priceRange: "",
+          features: [],
+          images: [],
+          socialMedia: {
+            facebook: "",
+            instagram: "",
+            twitter: "",
+          },
+        })
+        setUploadedImages([])
+        setSubmitSuccess(false)
+      }, 3000)
+
+    } catch (error) {
+      setSubmitError("Failed to submit business listing. Please try again.")
+      console.error("Submission error:", error)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
+      <AuthHeader />
+
+      {/* Breadcrumb Header */}
+      <div className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -146,28 +243,19 @@ export default function SubmitBusinessPage() {
                   Back to Businesses
                 </Button>
               </Link>
-              <div className="h-4 w-px bg-border" />
-              <div className="flex items-center space-x-2">
-                <div className="h-6 w-6 rounded bg-blue-600 flex items-center justify-center">
-                  <MapPin className="h-4 w-4 text-white" />
-                </div>
-                <Link href="/" className="font-bold hover:text-blue-600 transition-colors">
-                  LocalHub
-                </Link>
-              </div>
             </div>
             <div className="text-sm text-muted-foreground">
               Step {currentStep} of {steps.length}
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         {/* Progress Header */}
         <div className="max-w-4xl mx-auto mb-8">
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">List Your Business</h1>
+            <h1 className="text-3xl font-bold text-[#0A558C] mb-2">List Your Business</h1>
             <p className="text-lg text-gray-600">Join our community and connect with local customers</p>
           </div>
 
@@ -484,10 +572,53 @@ export default function SubmitBusinessPage() {
                         <Upload className="h-10 w-10 text-gray-400 mx-auto mb-3" />
                         <p className="text-gray-600 mb-2">Drag photos here or click to upload</p>
                         <p className="text-sm text-gray-500">Upload up to 10 photos. JPG, PNG up to 10MB each.</p>
-                        <Button variant="outline" className="mt-4 border-gray-300 hover:border-blue-400">
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          id="image-upload"
+                        />
+                        <Button
+                          variant="outline"
+                          className="mt-4 border-gray-300 hover:border-blue-400"
+                          onClick={() => document.getElementById('image-upload')?.click()}
+                          type="button"
+                        >
                           Choose Files
                         </Button>
                       </div>
+
+                      {/* Display uploaded images */}
+                      {uploadedImages.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-sm font-medium text-gray-700 mb-2">
+                            Uploaded Images ({uploadedImages.length}/10)
+                          </p>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {uploadedImages.map((file, index) => (
+                              <div key={index} className="relative">
+                                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                                  <img
+                                    src={URL.createObjectURL(file)}
+                                    alt={`Upload ${index + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <button
+                                  onClick={() => removeImage(index)}
+                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                  type="button"
+                                >
+                                  ×
+                                </button>
+                                <p className="text-xs text-gray-500 mt-1 truncate">{file.name}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div>
@@ -515,24 +646,49 @@ export default function SubmitBusinessPage() {
                 </div>
               )}
 
+              {/* Error and Success Messages */}
+              {submitError && (
+                <Alert className="mt-6 border-red-200 bg-red-50">
+                  <AlertDescription className="text-red-800">
+                    {submitError}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {submitSuccess && (
+                <Alert className="mt-6 border-green-200 bg-green-50">
+                  <AlertDescription className="text-green-800">
+                    🎉 Business listing submitted successfully! Your listing will be reviewed and published within 24-48 hours. You'll receive a confirmation email shortly.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Navigation Buttons */}
               <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
                 <Button
                   variant="outline"
                   onClick={handlePrev}
-                  disabled={currentStep === 1}
+                  disabled={currentStep === 1 || isSubmitting}
                   className="border-gray-300 hover:border-blue-400"
                 >
                   Previous
                 </Button>
 
                 {currentStep < steps.length ? (
-                  <Button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700">
+                  <Button
+                    onClick={handleNext}
+                    className="bg-[#0A558C] hover:bg-[#084b7c]"
+                    disabled={isSubmitting}
+                  >
                     Next Step
                   </Button>
                 ) : (
-                  <Button onClick={handleSubmit} className="bg-green-600 hover:bg-green-700">
-                    Submit Listing
+                  <Button
+                    onClick={handleSubmit}
+                    className="bg-[#0A558C] hover:bg-[#084b7c]"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Submitting..." : "Submit Listing"}
                   </Button>
                 )}
               </div>
@@ -540,6 +696,7 @@ export default function SubmitBusinessPage() {
           </Card>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

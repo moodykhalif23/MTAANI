@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AuthHeader } from "@/components/auth-header"
+import { Footer } from "@/components/footer"
 import ReviewSystem from "@/components/review-system"
 import Link from "next/link"
 
@@ -95,8 +97,10 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
+      <AuthHeader />
+
+      {/* Breadcrumb Header */}
+      <div className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -106,15 +110,6 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
                   Back to Businesses
                 </Button>
               </Link>
-              <div className="h-4 w-px bg-border" />
-              <div className="flex items-center space-x-2">
-                <div className="h-6 w-6 rounded bg-primary flex items-center justify-center">
-                  <MapPin className="h-4 w-4 text-primary-foreground" />
-                </div>
-                <Link href="/" className="font-bold hover:text-primary transition-colors">
-                  LocalHub
-                </Link>
-              </div>
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="sm">
@@ -128,7 +123,7 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
@@ -175,7 +170,7 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
                   <Badge variant="secondary">{businessData.category}</Badge>
                   <Badge variant="outline">{businessData.priceRange}</Badge>
                 </div>
-                <h1 className="text-3xl font-bold mb-2">{businessData.name}</h1>
+                <h1 className="text-3xl font-bold mb-2 text-[#0A558C]">{businessData.name}</h1>
                 <div className="flex items-center gap-1 mb-2">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                   <span className="font-medium">{businessData.rating}</span>
@@ -188,22 +183,22 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
 
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground" />
+                <MapPin className="h-5 w-5 text-[#0A558C]" />
                 <span>{businessData.location}</span>
               </div>
               <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-muted-foreground" />
-                <a href={`tel:${businessData.phone}`} className="hover:text-primary transition-colors">
+                <Phone className="h-5 w-5 text-[#0A558C]" />
+                <a href={`tel:${businessData.phone}`} className="hover:text-[#0A558C] transition-colors">
                   {businessData.phone}
                 </a>
               </div>
               <div className="flex items-center gap-3">
-                <Globe className="h-5 w-5 text-muted-foreground" />
+                <Globe className="h-5 w-5 text-[#0A558C]" />
                 <a
                   href={`https://${businessData.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-primary transition-colors"
+                  className="hover:text-[#0A558C] transition-colors"
                 >
                   {businessData.website}
                 </a>
@@ -211,11 +206,11 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
             </div>
 
             <div className="grid grid-cols-2 gap-3 mt-6">
-              <Button className="w-full">
+              <Button className="w-full bg-[#0A558C] hover:bg-[#084b7c]">
                 <Phone className="h-4 w-4 mr-2" />
                 Call Now
               </Button>
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full border-[#0A558C] text-[#0A558C] hover:bg-blue-50">
                 <Directions className="h-4 w-4 mr-2" />
                 Get Directions
               </Button>
@@ -373,6 +368,7 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
           </TabsContent>
         </Tabs>
       </div>
+      <Footer />
     </div>
   )
 }

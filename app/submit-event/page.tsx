@@ -11,9 +11,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AuthHeader } from "@/components/auth-header"
+import { Footer } from "@/components/footer"
 import Link from "next/link"
 
 export default function SubmitEventPage() {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState("")
+  const [uploadedImages, setUploadedImages] = useState<File[]>([])
   const [formData, setFormData] = useState({
     title: "",
     category: "",
@@ -31,8 +37,8 @@ export default function SubmitEventPage() {
     organizerEmail: "",
     organizerPhone: "",
     website: "",
-    tags: [],
-    images: [],
+    tags: [] as string[],
+    images: [] as string[],
     requiresRegistration: false,
     ageRestriction: "",
     specialRequirements: "",
@@ -77,15 +83,101 @@ export default function SubmitEventPage() {
     }))
   }
 
-  const handleSubmit = () => {
-    console.log("Submitting event:", formData)
-    // Handle form submission
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (files) {
+      const newImages = Array.from(files).slice(0, 5 - uploadedImages.length) // Limit to 5 total
+      setUploadedImages(prev => [...prev, ...newImages])
+    }
+  }
+
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const validateForm = () => {
+    const errors = []
+    if (!formData.title.trim()) errors.push("Event title is required")
+    if (!formData.category) errors.push("Category is required")
+    if (!formData.description.trim()) errors.push("Description is required")
+    if (!formData.date) errors.push("Event date is required")
+    if (!formData.startTime) errors.push("Start time is required")
+    if (!formData.location.trim()) errors.push("Location is required")
+    if (!formData.organizerName.trim()) errors.push("Organizer name is required")
+    if (!formData.organizerEmail.trim()) errors.push("Organizer email is required")
+
+    return errors
+  }
+
+  const handleSubmit = async () => {
+    const errors = validateForm()
+    if (errors.length > 0) {
+      setSubmitError(errors.join(", "))
+      return
+    }
+
+    setIsSubmitting(true)
+    setSubmitError("")
+
+    try {
+      // Simulate API call
+      const submissionData = {
+        ...formData,
+        images: uploadedImages.map(file => file.name),
+        submittedAt: new Date().toISOString(),
+        status: "pending_approval"
+      }
+
+      console.log("Submitting event for approval:", submissionData)
+
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+      setSubmitSuccess(true)
+
+      // Reset form after successful submission
+      setTimeout(() => {
+        setFormData({
+          title: "",
+          category: "",
+          description: "",
+          longDescription: "",
+          date: "",
+          startTime: "",
+          endTime: "",
+          location: "",
+          address: "",
+          maxAttendees: "",
+          ticketPrice: "",
+          isFree: true,
+          organizerName: "",
+          organizerEmail: "",
+          organizerPhone: "",
+          website: "",
+          tags: [],
+          images: [],
+          requiresRegistration: false,
+          ageRestriction: "",
+          specialRequirements: "",
+        })
+        setUploadedImages([])
+        setSubmitSuccess(false)
+      }, 3000)
+
+    } catch (error) {
+      setSubmitError("Failed to submit event. Please try again.")
+      console.error("Submission error:", error)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
-      {/* Header */}
-      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
+      <AuthHeader />
+
+      {/* Breadcrumb Header */}
+      <div className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -95,24 +187,15 @@ export default function SubmitEventPage() {
                   Back to Events
                 </Button>
               </Link>
-              <div className="h-4 w-px bg-border" />
-              <div className="flex items-center space-x-2">
-                <div className="h-6 w-6 rounded bg-purple-600 flex items-center justify-center">
-                  <Calendar className="h-4 w-4 text-white" />
-                </div>
-                <Link href="/" className="font-bold hover:text-purple-600 transition-colors">
-                  LocalHub
-                </Link>
-              </div>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-3">Create an Event</h1>
+            <h1 className="text-4xl font-bold text-[#0A558C] mb-3">Create an Event</h1>
             <p className="text-xl text-gray-600">Share your event with the local community</p>
           </div>
 
@@ -418,11 +501,54 @@ export default function SubmitEventPage() {
                         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
                           <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-gray-600 mb-1">Upload event photos</p>
-                          <p className="text-sm text-gray-500">JPG, PNG up to 5MB each</p>
-                          <Button variant="outline" className="mt-3 border-gray-300 hover:border-purple-400">
+                          <p className="text-sm text-gray-500">JPG, PNG up to 5MB each (max 5 images)</p>
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            id="event-image-upload"
+                          />
+                          <Button
+                            variant="outline"
+                            className="mt-3 border-gray-300 hover:border-purple-400"
+                            onClick={() => document.getElementById('event-image-upload')?.click()}
+                            type="button"
+                          >
                             Choose Files
                           </Button>
                         </div>
+
+                        {/* Display uploaded images */}
+                        {uploadedImages.length > 0 && (
+                          <div className="mt-4">
+                            <p className="text-sm font-medium text-gray-700 mb-2">
+                              Uploaded Images ({uploadedImages.length}/5)
+                            </p>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                              {uploadedImages.map((file, index) => (
+                                <div key={index} className="relative">
+                                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                                    <img
+                                      src={URL.createObjectURL(file)}
+                                      alt={`Upload ${index + 1}`}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  <button
+                                    onClick={() => removeImage(index)}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                    type="button"
+                                  >
+                                    ×
+                                  </button>
+                                  <p className="text-xs text-gray-500 mt-1 truncate">{file.name}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -476,24 +602,45 @@ export default function SubmitEventPage() {
                   </CardContent>
                 </Card>
 
-                <Alert className="border-purple-200 bg-purple-50">
-                  <AlertDescription className="text-purple-800">
-                    Your event will be reviewed and published within 24 hours. You'll receive a confirmation email.
-                  </AlertDescription>
-                </Alert>
+                {/* Error and Success Messages */}
+                {submitError && (
+                  <Alert className="border-red-200 bg-red-50">
+                    <AlertDescription className="text-red-800">
+                      {submitError}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {submitSuccess && (
+                  <Alert className="border-green-200 bg-green-50">
+                    <AlertDescription className="text-green-800">
+                      🎉 Event submitted successfully! Your event will be reviewed and published within 24-48 hours. You'll receive a confirmation email shortly.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {!submitSuccess && (
+                  <Alert className="border-purple-200 bg-purple-50">
+                    <AlertDescription className="text-purple-800">
+                      Your event will be reviewed and published within 24 hours. You'll receive a confirmation email.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 <Button
                   onClick={handleSubmit}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3"
+                  className="w-full bg-[#0A558C] hover:bg-[#084b7c] text-white py-3"
                   size="lg"
+                  disabled={isSubmitting}
                 >
-                  Submit Event
+                  {isSubmitting ? "Submitting..." : "Submit Event"}
                 </Button>
               </div>
             </div>
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

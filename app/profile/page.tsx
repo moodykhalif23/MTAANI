@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AuthHeader } from "@/components/auth-header"
+import { Footer } from "@/components/footer"
 import { useAuth } from "@/lib/auth-context"
 import Link from "next/link"
 
@@ -56,41 +58,12 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center space-x-3 group">
-                <div className="relative h-12 w-12 p-2 rounded-xl bg-gradient-to-br from-[#0A558C]/10 to-[#0A558C]/5 group-hover:from-[#0A558C]/20 group-hover:to-[#0A558C]/10 transition-all duration-300 shadow-lg">
-                  <Image
-                    src="/images/mtaani-logo.png"
-                    alt="Mtaani"
-                    fill
-                    className="object-contain p-1 filter drop-shadow-sm"
-                    priority
-                  />
-                </div>
-                <div className="hidden sm:block">
-                  <h1 className="text-xl font-bold text-[#0A558C] tracking-tight">Mtaani</h1>
-                  <p className="text-xs text-gray-500 -mt-1">Local Community</p>
-                </div>
-              </Link>
-            </div>
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="text-gray-700 hover:text-[#0A558C]">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+      <AuthHeader />
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Profile</h1>
+            <h1 className="text-3xl font-bold text-[#0A558C] mb-2">My Profile</h1>
             <p className="text-gray-600">Manage your account settings and preferences</p>
           </div>
 
@@ -314,6 +287,7 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

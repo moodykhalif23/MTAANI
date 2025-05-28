@@ -15,6 +15,8 @@ import { OfflineIndicator } from "@/components/offline-indicator"
 import { addDistanceToItems, formatDistance } from "@/lib/location-utils"
 import { offlineCache } from "@/lib/offline-cache"
 import { useOffline } from "@/hooks/use-offline"
+import { AuthHeader } from "@/components/auth-header"
+import { Footer } from "@/components/footer"
 import Link from "next/link"
 
 export default function BusinessesPage() {
@@ -247,72 +249,12 @@ export default function BusinessesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <OfflineIndicator />
-
-      {/* Header */}
-      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 shadow-sm sticky top-0 z-40">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
-                <MapPin className="h-5 w-5 text-white" />
-              </div>
-              <Link
-                href="/"
-                className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
-              >
-                Mtaani
-              </Link>
-            </div>
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link
-                href="/"
-                className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
-              >
-                Home
-              </Link>
-              <Link href="/businesses" className="text-sm font-medium text-blue-600 border-b-2 border-blue-600">
-                Businesses
-              </Link>
-              <Link
-                href="/events"
-                className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
-              >
-                Events
-              </Link>
-              <Link
-                href="/calendar"
-                className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
-              >
-                Calendar
-              </Link>
-              <Link
-                href="/community"
-                className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
-              >
-                Community
-              </Link>
-            </nav>
-            <div className="flex items-center space-x-3">
-              <Button variant="ghost" size="sm" className="text-gray-700 hover:text-blue-600 hover:bg-blue-50">
-                Sign In
-              </Button>
-              <Link href="/submit-business">
-                <Button
-                  size="sm"
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-                >
-                  List Your Business
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AuthHeader />
 
       <div className="container mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-[#0A558C]">
             Local Businesses
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">Discover amazing local businesses in your community</p>
@@ -592,6 +534,7 @@ export default function BusinessesPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   )
 }

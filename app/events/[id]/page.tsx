@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
+import { AuthHeader } from "@/components/auth-header"
+import { Footer } from "@/components/footer"
 import ReviewSystem from "@/components/review-system"
 import Link from "next/link"
 
@@ -80,8 +82,10 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
+      <AuthHeader />
+
+      {/* Breadcrumb Header */}
+      <div className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -91,15 +95,6 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
                   Back to Events
                 </Button>
               </Link>
-              <div className="h-4 w-px bg-border" />
-              <div className="flex items-center space-x-2">
-                <div className="h-6 w-6 rounded bg-primary flex items-center justify-center">
-                  <MapPin className="h-4 w-4 text-primary-foreground" />
-                </div>
-                <Link href="/" className="font-bold hover:text-primary transition-colors">
-                  LocalHub
-                </Link>
-              </div>
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="sm">
@@ -113,7 +108,7 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         {/* Hero Section */}
@@ -134,25 +129,25 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
           <div>
             <div className="space-y-4">
               <div>
-                <h1 className="text-3xl font-bold mb-2">{eventData.title}</h1>
+                <h1 className="text-3xl font-bold mb-2 text-[#0A558C]">{eventData.title}</h1>
                 <p className="text-muted-foreground">{eventData.description}</p>
               </div>
 
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <Calendar className="h-5 w-5 text-[#0A558C]" />
                   <span>{eventData.date}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-muted-foreground" />
+                  <Clock className="h-5 w-5 text-[#0A558C]" />
                   <span>{eventData.time}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-muted-foreground" />
+                  <MapPin className="h-5 w-5 text-[#0A558C]" />
                   <span>{eventData.location}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Users className="h-5 w-5 text-muted-foreground" />
+                  <Users className="h-5 w-5 text-[#0A558C]" />
                   <span>{eventData.attendees} attending</span>
                 </div>
               </div>
@@ -175,7 +170,7 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
               </div>
 
               {/* Register Button */}
-              <Button className="w-full" size="lg" onClick={() => setIsRegistered(!isRegistered)}>
+              <Button className="w-full bg-[#0A558C] hover:bg-[#084b7c]" size="lg" onClick={() => setIsRegistered(!isRegistered)}>
                 <Ticket className="h-4 w-4 mr-2" />
                 {isRegistered ? "Registered ✓" : "Register for Event"}
               </Button>
@@ -368,6 +363,7 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
           </TabsContent>
         </Tabs>
       </div>
+      <Footer />
     </div>
   )
 }
