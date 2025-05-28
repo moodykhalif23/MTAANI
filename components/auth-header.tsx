@@ -84,6 +84,12 @@ export function AuthHeader() {
             >
               Community
             </Link>
+            <Link
+              href="/pricing"
+              className="text-sm font-medium text-gray-700 hover:text-[#0A558C] transition-colors duration-200"
+            >
+              Pricing
+            </Link>
           </nav>
 
           <div className="flex items-center space-x-3">
@@ -114,6 +120,12 @@ export function AuthHeader() {
                     <Link href="/profile" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings/subscription" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Subscription</span>
                     </Link>
                   </DropdownMenuItem>
                   {user.role === "business_owner" && (

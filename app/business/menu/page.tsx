@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { AuthHeader } from "@/components/auth-header"
 import { Footer } from "@/components/footer"
+import { MenuManagementGate } from "@/components/feature-gate"
 
 interface MenuItem {
   id: string
@@ -150,7 +151,8 @@ export default function DigitalMenuPage() {
       {/* Auth Header */}
       <AuthHeader />
 
-      {/* Header */}
+      <MenuManagementGate>
+        {/* Header */}
       <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -613,6 +615,8 @@ export default function DigitalMenuPage() {
           )}
         </DialogContent>
       </Dialog>
+      </MenuManagementGate>
+
       <Footer />
     </div>
   )

@@ -31,7 +31,6 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AuthHeader } from "@/components/auth-header"
 import { Footer } from "@/components/footer"
-import Image from "next/image"
 import Link from "next/link"
 
 export default function HomePage() {
@@ -550,13 +549,13 @@ export default function HomePage() {
               <p className="text-gray-600 leading-relaxed">
                 Easily manage your menu or catalog, update prices in real-time, and showcase your products online
               </p>
-              <Link href="/submit-business">
+              <Link href="/pricing">
                 <Button
                   variant="outline"
                   size="sm"
                   className="border-blue-200 text-[#0A558C] hover:bg-blue-50 hover:border-blue-300 mt-4"
                 >
-                  Get Started
+                  View Plans
                 </Button>
               </Link>
             </Card>
