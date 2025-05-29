@@ -45,16 +45,12 @@ export function AuthHeader() {
             <Link href="/" className="flex items-center space-x-3 group">
               <div className="relative h-14 w-14 p-2 rounded-xl bg-gradient-to-br from-[#0A558C]/10 to-[#0A558C]/5 group-hover:from-[#0A558C]/20 group-hover:to-[#0A558C]/10 transition-all duration-300 shadow-lg group-hover:shadow-xl">
                 <Image
-                  src="/images/mtaani-logo.png"
+                  src="/mtaani-high-resolution-logo-transparent.png"
                   alt="Mtaani"
                   fill
                   className="object-contain p-1 filter drop-shadow-sm"
                   priority
                 />
-              </div>
-              <div className="hidden sm:block">
-                <h1 className="text-2xl font-bold text-[#0A558C] tracking-tight">Mtaani</h1>
-                <p className="text-xs text-gray-500 -mt-1">Local Community</p>
               </div>
             </Link>
           </div>

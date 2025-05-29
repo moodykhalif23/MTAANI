@@ -89,7 +89,7 @@ export default function SignupPage() {
           <div className="flex flex-col items-center mb-8">
             <div className="relative h-20 w-20 mb-4 p-3 rounded-2xl bg-gradient-to-br from-[#0A558C]/10 to-[#0A558C]/5 shadow-xl">
               <Image
-                src="/images/mtaani-logo.png"
+                src="/mtaani-high-resolution-logo-transparent.png"
                 alt="Mtaani"
                 fill
                 className="object-contain p-1 filter drop-shadow-md"

@@ -10,13 +10,12 @@ export function Footer() {
             <div className="flex items-center space-x-3 mb-6">
               <div className="relative h-10 w-10 p-2 rounded-xl bg-gradient-to-br from-[#0A558C]/10 to-[#0A558C]/5 shadow-lg">
                 <Image
-                  src="/images/mtaani-logo.png"
+                  src="/mtaani-high-resolution-logo-transparent.png"
                   alt="Mtaani"
                   fill
                   className="object-contain p-1 filter drop-shadow-sm"
                 />
               </div>
-              <span className="text-xl font-bold text-[#0A558C]">Mtaani</span>
             </div>
             <p className="text-gray-600 leading-relaxed">Connecting communities, one local business at a time.</p>
           </div>

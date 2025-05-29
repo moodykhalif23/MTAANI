@@ -220,7 +220,7 @@ class NotificationManager {
         type === "businesses"
           ? `Discover ${newItems.length} new local ${newItems.length === 1 ? "business" : "businesses"} in your area`
           : `Check out ${newItems.length} new ${newItems.length === 1 ? "event" : "events"} happening near you`,
-      icon: "/images/mtaani-logo.png",
+      icon: "/mtaani-high-resolution-logo-transparent.png",
       badge: "/images/mtaani-badge.png",
       tag: `new-${type}-${Date.now()}`,
       data: {

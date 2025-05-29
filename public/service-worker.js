@@ -4,7 +4,7 @@
 const CACHE_NAME = "mtaani-offline-v1"
 
 // Assets to cache on install
-const STATIC_ASSETS = ["/", "/offline", "/images/mtaani-logo.png", "/images/mtaani-badge.png"]
+const STATIC_ASSETS = ["/", "/offline", "/mtaani-high-resolution-logo-transparent.png", "/images/mtaani-badge.png"]
 
 // Install event - cache static assets
 self.addEventListener("install", (event) => {

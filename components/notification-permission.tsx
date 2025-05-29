@@ -24,10 +24,8 @@ export function NotificationPermission() {
   const [showSettings, setShowSettings] = useState(false)
   const [isRequesting, setIsRequesting] = useState(false)
 
-  // Don't show if notifications aren't supported
   if (!isSupported) return null
 
-  // Don't show if permission already granted and preferences are set
   if (permission === "granted" && preferences.enabled && !showSettings) return null
 
   const handleRequestPermission = async () => {

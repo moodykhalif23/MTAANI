@@ -84,7 +84,7 @@ export function useNotifications() {
     try {
       return await notificationManager.showNotification("Test Notification", {
         body: "This is a test notification from Mtaani!",
-        icon: "/images/mtaani-logo.png",
+        icon: "/mtaani-high-resolution-logo-transparent.png",
         tag: "test-notification",
       })
     } catch (error) {
