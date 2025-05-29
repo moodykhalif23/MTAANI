@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Search, MapPin, Calendar, Clock, Users, Share2, Heart, Navigation } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,132 +20,70 @@ export default function EventsPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [timeFilter, setTimeFilter] = useState("all")
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [events, setEvents] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const events = [
-    {
-      id: 1,
-      title: "Summer Music Festival",
-      category: "Music",
-      date: "July 15, 2024",
-      time: "6:00 PM - 11:00 PM",
-      location: "Central Park Amphitheater",
-      address: "100 Park Ave, Downtown",
-      attendees: 245,
-      maxAttendees: 500,
-      price: "Free",
-      image: "/placeholder.svg?height=200&width=400",
-      organizer: {
-        name: "City Events Committee",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      description:
-        "Join us for an evening of live music featuring local bands and artists. Food trucks and vendors will be available.",
-      tags: ["Outdoor", "Family Friendly", "Live Music", "Food Trucks"],
-      featured: true,
-    },
-    {
-      id: 2,
-      title: "Local Farmers Market",
-      category: "Community",
-      date: "Every Saturday",
-      time: "8:00 AM - 2:00 PM",
-      location: "Main Street Plaza",
-      address: "200 Main St, Downtown",
-      attendees: 89,
-      maxAttendees: null,
-      price: "Free",
-      image: "/placeholder.svg?height=200&width=400",
-      organizer: {
-        name: "Downtown Merchants Association",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      description:
-        "Fresh produce, artisanal goods, and local crafts every Saturday morning. Support local farmers and artisans.",
-      tags: ["Weekly", "Fresh Produce", "Local Vendors", "Artisanal"],
-      featured: false,
-    },
-    {
-      id: 3,
-      title: "Business Networking Mixer",
-      category: "Business",
-      date: "July 20, 2024",
-      time: "7:00 PM - 9:00 PM",
-      location: "Chamber of Commerce",
-      address: "300 Business Blvd, Business District",
-      attendees: 67,
-      maxAttendees: 100,
-      price: "$25",
-      image: "/placeholder.svg?height=200&width=400",
-      organizer: {
-        name: "Local Chamber of Commerce",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      description: "Connect with local business owners and entrepreneurs. Light refreshments and door prizes included.",
-      tags: ["Networking", "Professional", "Refreshments", "Door Prizes"],
-      featured: false,
-    },
-    {
-      id: 4,
-      title: "Art Gallery Opening",
-      category: "Arts",
-      date: "July 18, 2024",
-      time: "6:00 PM - 9:00 PM",
-      location: "Downtown Art Gallery",
-      address: "150 Art St, Arts District",
-      attendees: 34,
-      maxAttendees: 75,
-      price: "Free",
-      image: "/placeholder.svg?height=200&width=400",
-      organizer: {
-        name: "Downtown Art Gallery",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      description: "Featuring works by local artist Sarah Johnson. Wine and cheese reception included.",
-      tags: ["Art", "Wine Reception", "Local Artist", "Gallery"],
-      featured: true,
-    },
-    {
-      id: 5,
-      title: "Community Yoga in the Park",
-      category: "Health",
-      date: "July 16, 2024",
-      time: "7:00 AM - 8:00 AM",
-      location: "Riverside Park",
-      address: "400 River Rd, Riverside",
-      attendees: 28,
-      maxAttendees: 50,
-      price: "$10",
-      image: "/placeholder.svg?height=200&width=400",
-      organizer: {
-        name: "Sunset Yoga Studio",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      description: "Start your day with a peaceful yoga session by the river. All levels welcome. Bring your own mat.",
-      tags: ["Yoga", "Outdoor", "Morning", "All Levels"],
-      featured: false,
-    },
-    {
-      id: 6,
-      title: "Food Truck Rally",
-      category: "Food",
-      date: "July 22, 2024",
-      time: "11:00 AM - 8:00 PM",
-      location: "City Hall Plaza",
-      address: "500 Government Ave, Downtown",
-      attendees: 156,
-      maxAttendees: 300,
-      price: "Free Entry",
-      image: "/placeholder.svg?height=200&width=400",
-      organizer: {
-        name: "City Events Committee",
-        avatar: "/placeholder.svg?height=40&width=40",
-      },
-      description:
-        "Over 20 food trucks featuring diverse cuisines. Live entertainment and family activities throughout the day.",
-      tags: ["Food Trucks", "Family Event", "Live Entertainment", "Diverse Cuisine"],
-      featured: true,
-    },
-  ]
+  // Fetch events from API
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true)
+        const params = new URLSearchParams()
+
+        if (selectedCategory && selectedCategory !== 'all') {
+          params.append('category', selectedCategory)
+        }
+        params.append('limit', '50')
+
+        const response = await fetch(`/api/events?${params.toString()}`)
+
+        if (response.ok) {
+          const data = await response.json()
+          const eventList = data.data?.events || []
+
+          // Transform API data to match component expectations
+          const transformedEvents = eventList.map((event: any) => ({
+            id: event.id,
+            title: event.title,
+            category: event.category,
+            date: new Date(event.date).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }),
+            time: `${event.startTime}${event.endTime ? ` - ${event.endTime}` : ''}`,
+            location: event.location,
+            address: event.address || event.location,
+            attendees: Math.floor(Math.random() * 200) + 10, // Simulated for now
+            maxAttendees: event.maxAttendees ? parseInt(event.maxAttendees) : null,
+            price: event.isFree ? 'Free' : (event.ticketPrice || 'TBD'),
+            image: event.images?.[0] || "/placeholder.svg?height=200&width=400",
+            organizer: {
+              name: event.organizerName,
+              avatar: "/placeholder.svg?height=40&width=40",
+            },
+            description: event.description,
+            tags: event.tags || [],
+            featured: Math.random() > 0.7, // Random featured status for now
+          }))
+
+          setEvents(transformedEvents)
+        } else {
+          throw new Error('Failed to fetch events')
+        }
+      } catch (err) {
+        console.error('Error fetching events:', err)
+        setError('Failed to load events')
+        // Fallback to empty array
+        setEvents([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchEvents()
+  }, [selectedCategory])
 
   // Add calculated distances when user location is available
   const eventsWithDistance = useMemo(() => {
@@ -297,7 +235,18 @@ export default function EventsPage() {
           </TabsList>
 
           <TabsContent value="featured">
-            {featuredEvents.length > 0 ? (
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading events...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <Calendar className="h-16 w-16 text-red-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2 text-gray-900">Error loading events</h3>
+                <p className="text-gray-600">{error}</p>
+              </div>
+            ) : featuredEvents.length > 0 ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {sortEventsByDistance(featuredEvents).map((event) => (
                   <Card
@@ -418,7 +367,19 @@ export default function EventsPage() {
           </TabsContent>
 
           <TabsContent value="all">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading events...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <Calendar className="h-16 w-16 text-red-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2 text-gray-900">Error loading events</h3>
+                <p className="text-gray-600">{error}</p>
+              </div>
+            ) : filteredEvents.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {sortEventsByDistance(filteredEvents).map((event) => (
                 <Card
                   key={event.id}
@@ -500,7 +461,14 @@ export default function EventsPage() {
                   </CardContent>
                 </Card>
               ))}
-            </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2 text-gray-900">No events found</h3>
+                <p className="text-gray-600">Try adjusting your search criteria</p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 

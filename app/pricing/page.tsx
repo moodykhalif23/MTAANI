@@ -43,7 +43,7 @@ export default function PricingPage() {
     {
       name: "Professional",
       description: "Ideal for growing businesses that want more features",
-      price: { monthly: 29, annual: 290 },
+      price: { monthly: 3900, annual: 39000 },
       icon: BarChart3,
       color: "from-blue-500 to-blue-600",
       features: [
@@ -66,7 +66,7 @@ export default function PricingPage() {
     {
       name: "Enterprise",
       description: "For established businesses needing advanced tools",
-      price: { monthly: 99, annual: 990 },
+      price: { monthly: 13300, annual: 133000 },
       icon: Crown,
       color: "from-purple-500 to-purple-600",
       features: [
@@ -131,7 +131,13 @@ export default function PricingPage() {
     if (plan.price.monthly === 0) return "Free"
     const price = isAnnual ? plan.price.annual : plan.price.monthly
     const period = isAnnual ? "year" : "month"
-    return `$${price}/${period}`
+    const formattedPrice = new Intl.NumberFormat('en-KE', {
+      style: 'currency',
+      currency: 'KES',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(price)
+    return `${formattedPrice}/${period}`
   }
 
   const getSavings = (plan: typeof plans[0]) => {
@@ -139,7 +145,13 @@ export default function PricingPage() {
     const monthlyCost = plan.price.monthly * 12
     const annualCost = plan.price.annual
     const savings = monthlyCost - annualCost
-    return savings > 0 ? `Save $${savings}/year` : null
+    const formattedSavings = new Intl.NumberFormat('en-KE', {
+      style: 'currency',
+      currency: 'KES',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(savings)
+    return savings > 0 ? `Save ${formattedSavings}/year` : null
   }
 
   return (
@@ -174,7 +186,7 @@ export default function PricingPage() {
               </Label>
               {isAnnual && (
                 <Badge variant="secondary" className="ml-2">
-                  Save up to 17%
+                  Save 2 months free
                 </Badge>
               )}
             </div>

@@ -1,6 +1,6 @@
 export type SubscriptionPlan = "starter" | "professional" | "enterprise"
 
-export type SubscriptionStatus = "active" | "inactive" | "trial" | "cancelled" | "past_due"
+export type SubscriptionStatus = "active" | "inactive" | "trialing" | "cancelled" | "past_due"
 
 export interface SubscriptionFeatures {
   // Basic Features
@@ -8,7 +8,7 @@ export interface SubscriptionFeatures {
   contactInfo: boolean
   businessPhotos: number | "unlimited"
   customerReviews: "view_only" | "manage" | "advanced"
-  
+
   // Professional Features
   analyticsBasic: boolean
   analyticsAdvanced: boolean
@@ -18,7 +18,7 @@ export interface SubscriptionFeatures {
   emailNotifications: boolean
   reviewManagement: boolean
   priorityListing: boolean
-  
+
   // Enterprise Features
   loyaltyPrograms: boolean
   customBranding: boolean
@@ -27,7 +27,7 @@ export interface SubscriptionFeatures {
   dedicatedSupport: boolean
   customFeatures: boolean
   advancedMarketing: boolean
-  
+
   // Support Level
   supportLevel: "community" | "priority" | "dedicated"
 }
@@ -120,8 +120,8 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
     name: "Professional",
     description: "Ideal for growing businesses that want more features",
     price: {
-      monthly: 29,
-      annual: 290
+      monthly: 3900, // KES 3,900 (~$29 USD)
+      annual: 39000  // KES 39,000 (~$290 USD) - 2 months free
     },
     features: {
       basicListing: true,
@@ -154,8 +154,8 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
     name: "Enterprise",
     description: "For established businesses needing advanced tools",
     price: {
-      monthly: 99,
-      annual: 990
+      monthly: 13300, // KES 13,300 (~$99 USD)
+      annual: 133000  // KES 133,000 (~$990 USD) - 2 months free
     },
     features: {
       basicListing: true,
@@ -189,29 +189,29 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, SubscriptionPlanDetail
 export function hasFeature(plan: SubscriptionPlan, feature: keyof SubscriptionFeatures): boolean {
   const planDetails = SUBSCRIPTION_PLANS[plan]
   const featureValue = planDetails.features[feature]
-  
+
   if (typeof featureValue === 'boolean') {
     return featureValue
   }
-  
+
   if (typeof featureValue === 'number') {
     return featureValue > 0
   }
-  
+
   if (typeof featureValue === 'string') {
     return featureValue !== 'view_only' && featureValue !== 'community'
   }
-  
+
   return false
 }
 
 export function canUploadPhotos(plan: SubscriptionPlan, currentCount: number): boolean {
   const planDetails = SUBSCRIPTION_PLANS[plan]
   const photoLimit = planDetails.features.businessPhotos
-  
+
   if (photoLimit === "unlimited") return true
   if (typeof photoLimit === 'number') return currentCount < photoLimit
-  
+
   return false
 }
 
@@ -222,6 +222,113 @@ export function getPhotoLimit(plan: SubscriptionPlan): number | "unlimited" {
 export function getPlanPrice(plan: SubscriptionPlan, isAnnual: boolean = false): number {
   const planDetails = SUBSCRIPTION_PLANS[plan]
   return isAnnual ? planDetails.price.annual : planDetails.price.monthly
+}
+
+// Security and validation interfaces
+export interface SubscriptionValidationResult {
+  isValid: boolean
+  hasAccess: boolean
+  reason?: string
+  expiresAt?: Date
+}
+
+export interface PaymentVerification {
+  paymentId: string
+  amount: number
+  currency: string
+  status: 'pending' | 'completed' | 'failed' | 'cancelled'
+  verifiedAt?: Date
+  provider: 'mpesa' | 'card' | 'bank_transfer'
+}
+
+export interface SubscriptionSecurityCheck {
+  userId: string
+  plan: SubscriptionPlan
+  feature: keyof SubscriptionFeatures
+  timestamp: Date
+  ipAddress?: string
+  userAgent?: string
+}
+
+// Enhanced subscription interface with security fields
+export interface SecureUserSubscription extends UserSubscription {
+  paymentVerification?: PaymentVerification
+  lastSecurityCheck?: Date
+  accessToken?: string // Server-generated token for API access
+  usageQuota: {
+    photosUsed: number
+    apiCallsUsed: number
+    menuItemsUsed: number
+    appointmentsUsed: number
+  }
+  securityFlags: {
+    requiresPaymentVerification: boolean
+    suspiciousActivity: boolean
+    manualReview: boolean
+  }
+}
+
+// Utility functions for security
+export function formatKenyaShillings(amount: number): string {
+  return new Intl.NumberFormat('en-KE', {
+    style: 'currency',
+    currency: 'KES',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount)
+}
+
+export function validateSubscriptionAccess(
+  subscription: UserSubscription | null,
+  feature: keyof SubscriptionFeatures
+): SubscriptionValidationResult {
+  if (!subscription) {
+    return {
+      isValid: false,
+      hasAccess: false,
+      reason: 'No active subscription found'
+    }
+  }
+
+  // Check if subscription is active
+  if (subscription.status !== 'active' && subscription.status !== 'trialing') {
+    return {
+      isValid: false,
+      hasAccess: false,
+      reason: 'Subscription is not active',
+      expiresAt: subscription.currentPeriodEnd
+    }
+  }
+
+  // Check if subscription has expired
+  if (new Date() > subscription.currentPeriodEnd) {
+    return {
+      isValid: false,
+      hasAccess: false,
+      reason: 'Subscription has expired',
+      expiresAt: subscription.currentPeriodEnd
+    }
+  }
+
+  // Check if trial has expired
+  if (subscription.trialEnd && new Date() > subscription.trialEnd && subscription.status === 'trialing') {
+    return {
+      isValid: false,
+      hasAccess: false,
+      reason: 'Trial period has expired',
+      expiresAt: subscription.trialEnd
+    }
+  }
+
+  // Check if plan has the required feature
+  const hasFeatureAccess = hasFeature(subscription.plan, feature)
+
+  return {
+    isValid: true,
+    hasAccess: hasFeatureAccess,
+    reason: hasFeatureAccess ? undefined : `Feature not available in ${subscription.plan} plan`,
+    expiresAt: subscription.currentPeriodEnd
+  }
 }
 
 export function getAnnualSavings(plan: SubscriptionPlan): number {

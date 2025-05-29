@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { 
-  SubscriptionPlan, 
-  SubscriptionStatus, 
-  UserSubscription, 
+import {
+  SubscriptionPlan,
+  SubscriptionStatus,
+  UserSubscription,
   BusinessProfile,
   SUBSCRIPTION_PLANS,
   hasFeature,
@@ -20,30 +20,30 @@ interface UseSubscriptionReturn {
   businessProfile: BusinessProfile | null
   isLoading: boolean
   error: string | null
-  
+
   // Feature checking
   hasFeature: (feature: keyof import("@/lib/subscription-types").SubscriptionFeatures) => boolean
   canUploadPhotos: (currentCount: number) => boolean
   getPhotoLimit: () => number | "unlimited"
-  
+
   // Plan information
   currentPlan: SubscriptionPlan
   planDetails: typeof SUBSCRIPTION_PLANS[SubscriptionPlan]
   isOnTrial: boolean
   trialDaysLeft: number
-  
+
   // Actions
   upgradePlan: (newPlan: SubscriptionPlan, isAnnual?: boolean) => Promise<boolean>
   downgradePlan: (newPlan: SubscriptionPlan) => Promise<boolean>
   cancelSubscription: () => Promise<boolean>
   reactivateSubscription: () => Promise<boolean>
   startTrial: (plan: SubscriptionPlan) => Promise<boolean>
-  
+
   // Billing
   updatePaymentMethod: (paymentMethodId: string) => Promise<boolean>
   getUpcomingInvoice: () => Promise<any>
   getBillingHistory: () => Promise<any[]>
-  
+
   // Usage tracking
   refreshUsage: () => Promise<void>
   checkUsageLimit: (feature: string) => boolean
@@ -101,8 +101,41 @@ export function useSubscription(): UseSubscriptionReturn {
     loadSubscription()
   }, [])
 
-  // Feature checking functions
-  const checkHasFeature = useCallback((feature: keyof import("@/lib/subscription-types").SubscriptionFeatures) => {
+  // Secure feature checking with server validation
+  const checkHasFeature = useCallback(async (feature: keyof import("@/lib/subscription-types").SubscriptionFeatures): Promise<boolean> => {
+    if (!subscription) return false
+
+    try {
+      // Validate with server to prevent client-side tampering
+      const response = await fetch('/api/subscription/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${subscription.userId}`
+        },
+        body: JSON.stringify({
+          userId: subscription.userId,
+          feature,
+          securityToken: 'secure_token_123' // In production, this would be a proper JWT
+        })
+      })
+
+      if (!response.ok) {
+        console.warn('Server validation failed:', response.status)
+        return false
+      }
+
+      const validation = await response.json()
+      return validation.isValid && validation.hasAccess
+    } catch (error) {
+      console.error('Feature validation error:', error)
+      // Fallback to client-side check (less secure)
+      return hasFeature(subscription.plan, feature)
+    }
+  }, [subscription])
+
+  // Synchronous version for immediate UI updates (less secure)
+  const checkHasFeatureSync = useCallback((feature: keyof import("@/lib/subscription-types").SubscriptionFeatures) => {
     if (!subscription) return false
     return hasFeature(subscription.plan, feature)
   }, [subscription])
@@ -120,44 +153,77 @@ export function useSubscription(): UseSubscriptionReturn {
   // Plan information
   const currentPlan = subscription?.plan || "starter"
   const planDetails = SUBSCRIPTION_PLANS[currentPlan]
-  
+
   const isOnTrial = subscription?.trialEnd ? new Date() < subscription.trialEnd : false
-  const trialDaysLeft = subscription?.trialEnd 
+  const trialDaysLeft = subscription?.trialEnd
     ? Math.max(0, Math.ceil((subscription.trialEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
     : 0
 
-  // Action functions
+  // Secure action functions
   const upgradePlan = useCallback(async (newPlan: SubscriptionPlan, isAnnual: boolean = false): Promise<boolean> => {
     try {
       setIsLoading(true)
-      // TODO: Implement actual upgrade logic
-      console.log(`Upgrading to ${newPlan} (${isAnnual ? 'annual' : 'monthly'})`)
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Update subscription
-      if (subscription) {
-        const updatedSubscription = {
-          ...subscription,
-          plan: newPlan,
-          updatedAt: new Date()
-        }
-        setSubscription(updatedSubscription)
-        
-        // Update business profile features
-        if (businessProfile) {
-          setBusinessProfile({
-            ...businessProfile,
-            subscription: updatedSubscription,
-            features: SUBSCRIPTION_PLANS[newPlan].features
-          })
-        }
+      setError(null)
+
+      if (!subscription) {
+        throw new Error('No active subscription found')
       }
-      
+
+      // Call secure upgrade API
+      const response = await fetch('/api/subscription/upgrade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${subscription.userId}`
+        },
+        body: JSON.stringify({
+          userId: subscription.userId,
+          newPlan,
+          isAnnual,
+          securityToken: 'secure_token_123' // In production, use proper JWT
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Upgrade failed')
+      }
+
+      if (result.paymentRequired && !result.paymentVerified) {
+        throw new Error('Payment verification failed')
+      }
+
+      // Update local subscription state only after server confirms
+      const updatedSubscription = {
+        ...subscription,
+        plan: newPlan,
+        status: 'active' as const,
+        currentPeriodEnd: new Date(result.currentPeriodEnd),
+        updatedAt: new Date()
+      }
+      setSubscription(updatedSubscription)
+
+      // Update business profile features
+      if (businessProfile) {
+        setBusinessProfile({
+          ...businessProfile,
+          subscription: updatedSubscription,
+          features: SUBSCRIPTION_PLANS[newPlan].features
+        })
+      }
+
+      console.log('Subscription upgraded successfully:', {
+        newPlan,
+        paymentId: result.paymentId,
+        amount: result.amount
+      })
+
       return true
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to upgrade plan")
+      const errorMessage = err instanceof Error ? err.message : "Failed to upgrade plan"
+      setError(errorMessage)
+      console.error('Upgrade error:', err)
       return false
     } finally {
       setIsLoading(false)
@@ -169,10 +235,10 @@ export function useSubscription(): UseSubscriptionReturn {
       setIsLoading(true)
       // TODO: Implement actual downgrade logic
       console.log(`Downgrading to ${newPlan}`)
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000))
-      
+
       return true
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to downgrade plan")
@@ -187,10 +253,10 @@ export function useSubscription(): UseSubscriptionReturn {
       setIsLoading(true)
       // TODO: Implement actual cancellation logic
       console.log("Cancelling subscription")
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000))
-      
+
       if (subscription) {
         setSubscription({
           ...subscription,
@@ -198,7 +264,7 @@ export function useSubscription(): UseSubscriptionReturn {
           updatedAt: new Date()
         })
       }
-      
+
       return true
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to cancel subscription")
@@ -213,10 +279,10 @@ export function useSubscription(): UseSubscriptionReturn {
       setIsLoading(true)
       // TODO: Implement actual reactivation logic
       console.log("Reactivating subscription")
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000))
-      
+
       if (subscription) {
         setSubscription({
           ...subscription,
@@ -225,7 +291,7 @@ export function useSubscription(): UseSubscriptionReturn {
           updatedAt: new Date()
         })
       }
-      
+
       return true
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to reactivate subscription")
@@ -240,17 +306,17 @@ export function useSubscription(): UseSubscriptionReturn {
       if (!isTrialEligible(plan)) {
         throw new Error("This plan is not eligible for a trial")
       }
-      
+
       setIsLoading(true)
       // TODO: Implement actual trial start logic
       console.log(`Starting trial for ${plan}`)
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000))
-      
+
       const trialEnd = new Date()
       trialEnd.setDate(trialEnd.getDate() + SUBSCRIPTION_PLANS[plan].trialDays)
-      
+
       const trialSubscription: UserSubscription = {
         id: "trial_" + Date.now(),
         userId: "user_123",
@@ -263,9 +329,9 @@ export function useSubscription(): UseSubscriptionReturn {
         createdAt: new Date(),
         updatedAt: new Date()
       }
-      
+
       setSubscription(trialSubscription)
-      
+
       if (businessProfile) {
         setBusinessProfile({
           ...businessProfile,
@@ -273,7 +339,7 @@ export function useSubscription(): UseSubscriptionReturn {
           features: SUBSCRIPTION_PLANS[plan].features
         })
       }
-      
+
       return true
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start trial")
@@ -288,10 +354,10 @@ export function useSubscription(): UseSubscriptionReturn {
       setIsLoading(true)
       // TODO: Implement payment method update
       console.log(`Updating payment method: ${paymentMethodId}`)
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000))
-      
+
       return true
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update payment method")
@@ -322,7 +388,7 @@ export function useSubscription(): UseSubscriptionReturn {
 
   const checkUsageLimit = useCallback((feature: string): boolean => {
     if (!businessProfile) return false
-    
+
     // TODO: Implement usage limit checking based on feature
     switch (feature) {
       case "photos":
@@ -344,7 +410,8 @@ export function useSubscription(): UseSubscriptionReturn {
     businessProfile,
     isLoading,
     error,
-    hasFeature: checkHasFeature,
+    hasFeature: checkHasFeature, // Async server-validated version
+    hasFeatureSync: checkHasFeatureSync, // Sync client-side version
     canUploadPhotos: checkCanUploadPhotos,
     getPhotoLimit: getPhotoLimitForPlan,
     currentPlan,

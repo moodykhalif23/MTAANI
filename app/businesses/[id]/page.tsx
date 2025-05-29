@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   ArrowLeft,
   MapPin,
@@ -94,6 +94,54 @@ const reviewsData = [
 export default function BusinessDetailPage({ params }: { params: { id: string } }) {
   const [selectedImage, setSelectedImage] = useState(0)
   const [isFavorited, setIsFavorited] = useState(false)
+  const [business, setBusiness] = useState(businessData) // Start with fallback data
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch business data from API
+  useEffect(() => {
+    const fetchBusiness = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/businesses/${params.id}`)
+
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.data?.business) {
+            // Transform API data to match component expectations
+            const apiBusiness = data.data.business
+            setBusiness({
+              id: apiBusiness.id,
+              name: apiBusiness.name,
+              category: apiBusiness.category,
+              rating: apiBusiness.stats?.rating || 0,
+              reviews: apiBusiness.stats?.reviews || 0,
+              priceRange: "$$", // Default or from business data
+              location: apiBusiness.location?.address || "Address not available",
+              phone: apiBusiness.contact?.phone || "Phone not available",
+              website: apiBusiness.contact?.website || "",
+              email: apiBusiness.contact?.email || "",
+              hours: apiBusiness.hours || businessData.hours, // Fallback to default hours
+              description: apiBusiness.description || "No description available",
+              features: apiBusiness.services || businessData.features, // Use services as features
+              images: apiBusiness.media?.gallery || businessData.images,
+              menu: businessData.menu // Keep default menu for now
+            })
+          }
+        } else {
+          setError('Failed to load business details')
+        }
+      } catch (err) {
+        console.error('Error fetching business:', err)
+        setError('Failed to load business details')
+        // Keep using fallback data
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBusiness()
+  }, [params.id])
 
   return (
     <div className="min-h-screen bg-background">
@@ -131,12 +179,12 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
           <div className="lg:col-span-2">
             <div className="aspect-video relative overflow-hidden rounded-lg mb-4">
               <img
-                src={businessData.images[selectedImage] || "/placeholder.svg"}
-                alt={businessData.name}
+                src={business.images[selectedImage] || "/placeholder.svg"}
+                alt={business.name}
                 className="object-cover w-full h-full"
               />
               <div className="absolute bottom-4 left-4 flex gap-2">
-                {businessData.images.map((_, index) => (
+                {business.images.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
@@ -151,7 +199,7 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
             </div>
 
             <div className="flex gap-2 mb-4">
-              {businessData.images.slice(1, 4).map((image, index) => (
+              {business.images.slice(1, 4).map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index + 1)}
@@ -167,42 +215,44 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Badge variant="secondary">{businessData.category}</Badge>
-                  <Badge variant="outline">{businessData.priceRange}</Badge>
+                  <Badge variant="secondary">{business.category}</Badge>
+                  <Badge variant="outline">{business.priceRange}</Badge>
                 </div>
-                <h1 className="text-3xl font-bold mb-2 text-[#0A558C]">{businessData.name}</h1>
+                <h1 className="text-3xl font-bold mb-2 text-[#0A558C]">{business.name}</h1>
                 <div className="flex items-center gap-1 mb-2">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium">{businessData.rating}</span>
-                  <span className="text-muted-foreground">({businessData.reviews} reviews)</span>
+                  <span className="font-medium">{business.rating}</span>
+                  <span className="text-muted-foreground">({business.reviews} reviews)</span>
                 </div>
               </div>
             </div>
 
-            <p className="text-muted-foreground mb-6">{businessData.description}</p>
+            <p className="text-muted-foreground mb-6">{business.description}</p>
 
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <MapPin className="h-5 w-5 text-[#0A558C]" />
-                <span>{businessData.location}</span>
+                <span>{business.location}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-[#0A558C]" />
-                <a href={`tel:${businessData.phone}`} className="hover:text-[#0A558C] transition-colors">
-                  {businessData.phone}
+                <a href={`tel:${business.phone}`} className="hover:text-[#0A558C] transition-colors">
+                  {business.phone}
                 </a>
               </div>
-              <div className="flex items-center gap-3">
-                <Globe className="h-5 w-5 text-[#0A558C]" />
-                <a
-                  href={`https://${businessData.website}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-[#0A558C] transition-colors"
-                >
-                  {businessData.website}
-                </a>
-              </div>
+              {business.website && (
+                <div className="flex items-center gap-3">
+                  <Globe className="h-5 w-5 text-[#0A558C]" />
+                  <a
+                    href={`https://${business.website}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#0A558C] transition-colors"
+                  >
+                    {business.website}
+                  </a>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3 mt-6">
@@ -235,9 +285,9 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
                     <CardTitle>About</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground mb-4">{businessData.description}</p>
+                    <p className="text-muted-foreground mb-4">{business.description}</p>
                     <div className="flex flex-wrap gap-2">
-                      {businessData.features.map((feature) => (
+                      {business.features.map((feature) => (
                         <Badge key={feature} variant="outline">
                           {feature}
                         </Badge>
@@ -280,7 +330,7 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      {Object.entries(businessData.hours).map(([day, hours]) => (
+                      {Object.entries(business.hours).map(([day, hours]) => (
                         <div key={day} className="flex justify-between">
                           <span className="capitalize font-medium">{day}</span>
                           <span className="text-muted-foreground">{hours}</span>
@@ -295,7 +345,7 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
 
           <TabsContent value="menu" className="mt-8">
             <div className="space-y-6">
-              {businessData.menu.map((section) => (
+              {business.menu.map((section) => (
                 <Card key={section.category}>
                   <CardHeader>
                     <CardTitle>{section.category}</CardTitle>
@@ -316,10 +366,10 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
 
           <TabsContent value="reviews" className="mt-8">
             <ReviewSystem
-              businessId={businessData.id}
+              businessId={business.id}
               reviews={reviewsData}
-              averageRating={businessData.rating}
-              totalReviews={businessData.reviews}
+              averageRating={business.rating}
+              totalReviews={business.reviews}
             />
           </TabsContent>
 
@@ -332,19 +382,21 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
                 <CardContent className="space-y-4">
                   <div>
                     <div className="font-medium mb-1">Address</div>
-                    <div className="text-muted-foreground">{businessData.location}</div>
+                    <div className="text-muted-foreground">{business.location}</div>
                   </div>
                   <div>
                     <div className="font-medium mb-1">Phone</div>
-                    <div className="text-muted-foreground">{businessData.phone}</div>
+                    <div className="text-muted-foreground">{business.phone}</div>
                   </div>
-                  <div>
-                    <div className="font-medium mb-1">Website</div>
-                    <div className="text-muted-foreground">{businessData.website}</div>
-                  </div>
+                  {business.website && (
+                    <div>
+                      <div className="font-medium mb-1">Website</div>
+                      <div className="text-muted-foreground">{business.website}</div>
+                    </div>
+                  )}
                   <div>
                     <div className="font-medium mb-1">Email</div>
-                    <div className="text-muted-foreground">{businessData.email}</div>
+                    <div className="text-muted-foreground">{business.email}</div>
                   </div>
                 </CardContent>
               </Card>
@@ -355,7 +407,7 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-2">
-                    {businessData.features.map((feature) => (
+                    {business.features.map((feature) => (
                       <div key={feature} className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-green-500 rounded-full" />
                         <span className="text-sm">{feature}</span>

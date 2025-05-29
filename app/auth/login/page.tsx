@@ -12,11 +12,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/lib/auth-context"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -29,11 +31,11 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const success = await login(email, password)
-      if (success) {
+      const result = await login(email, password, rememberMe)
+      if (result.success) {
         router.push("/")
       } else {
-        setError("Invalid email or password")
+        setError(result.error || "Login failed")
       }
     } catch (error) {
       setError("An error occurred. Please try again.")
@@ -126,6 +128,16 @@ export default function LoginPage() {
               </div>
 
               <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remember-me"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  />
+                  <Label htmlFor="remember-me" className="text-sm text-gray-600">
+                    Remember me
+                  </Label>
+                </div>
                 <Link href="/auth/forgot-password" className="text-sm text-[#0A558C] hover:underline">
                   Forgot password?
                 </Link>
@@ -149,9 +161,9 @@ export default function LoginPage() {
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
               <p className="text-xs text-gray-600 mb-2 font-medium">Demo Accounts:</p>
               <div className="space-y-1 text-xs text-gray-500">
-                <p>User: user@demo.com / password</p>
-                <p>Business: business@demo.com / password</p>
-                <p>Admin: admin@demo.com / password</p>
+                <p>User: user@example.com / secret123</p>
+                <p>Business: business@example.com / secret123</p>
+                <p>Admin: admin@example.com / secret123</p>
               </div>
             </div>
           </CardContent>

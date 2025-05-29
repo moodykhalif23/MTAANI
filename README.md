@@ -1,224 +1,183 @@
-# Mtaani - Local Community Platform
+# Mtaani - Community Business Platform
 
-![Mtaani Logo](public/images/mtaani-logo.png)
+A comprehensive platform connecting local businesses with their communities across Kenya. Built with Next.js 14, TypeScript, CouchDB, and JWT authentication.
 
-Mtaani is a comprehensive local community platform that connects residents with businesses, events, and community resources in their neighborhood. This README provides technical documentation for developers who want to contribute to the project.
+## 🚀 Quick Start
 
-## Table of Contents
+```bash
+# Clone and install
+git clone https://github.com/your-username/mtaani.git
+cd mtaani
+npm install
 
-- [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-- [Development Workflow](#development-workflow)
-- [Key Features](#key-features)
-- [Component Library](#component-library)
-- [State Management](#state-management)
-- [API Integration](#api-integration)
-- [Contributing](#contributing)
-- [Code Standards](#code-standards)
-- [Testing](#testing)
-- [Deployment](#deployment)
+# Setup environment (single .env.local file)
+cp .env.example .env.local
+# Edit .env.local with your values (JWT secrets are pre-generated)
 
-## Tech Stack
+# Start development
+npm run dev
+```
 
-Mtaani is built with modern web technologies:
+Open [http://localhost:3000](http://localhost:3000)
 
-- **Framework**: [Next.js](https://nextjs.org/) (App Router)
-- **Language**: TypeScript
-- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Authentication**: (To be implemented)
-- **Database**: (To be implemented)
-- **Maps Integration**: (To be implemented)
-- **Search**: (To be implemented)
+## 🏗️ Tech Stack
 
-## Project Structure
+**Frontend:** Next.js 14, TypeScript, Tailwind CSS, Shadcn/ui
+**Backend:** Next.js API Routes, JWT Authentication
+**Database:** CouchDB (NoSQL)
+**Payment:** M-Pesa, Stripe
+**Storage:** Local/AWS S3/Cloudinary
 
-\`\`\`
+
+
+## 📁 Project Structure
+
+```
 mtaani/
 ├── app/                    # Next.js App Router
-│   ├── admin/              # Admin dashboard
-│   ├── businesses/         # Business listings and details
-│   ├── calendar/           # Event calendar
-│   ├── community/          # Community features
-│   ├── events/             # Event listings and details
-│   ├── submit-business/    # Business submission form
-│   ├── submit-event/       # Event submission form
-│   ├── layout.tsx          # Root layout
-│   └── page.tsx            # Homepage
-├── components/             # Reusable components
-│   ├── ui/                 # shadcn/ui components
-│   └── ...                 # Custom components
-├── hooks/                  # Custom React hooks
-├── lib/                    # Utility functions
-├── public/                 # Static assets
-│   └── images/             # Image assets
-└── ...
-\`\`\`
+│   ├── (auth)/            # Auth pages (login, signup)
+│   ├── admin/             # Admin dashboard
+│   ├── business/          # Business management
+│   ├── api/               # REST API endpoints
+│   └── globals.css
+├── components/            # UI components
+│   ├── ui/               # Base components (shadcn/ui)
+│   ├── auth/             # Auth components
+│   └── business/         # Business components
+├── lib/                  # Core utilities
+│   ├── couchdb.ts        # CouchDB client
+│   ├── jwt.ts            # JWT authentication
+│   ├── models/           # Document schemas
+│   └── services/         # Business logic
+└── .env.local            # Single environment file
+```
 
-## Getting Started
+## 🔐 Authentication & Security
 
-### Prerequisites
+- **JWT-based authentication** with refresh tokens
+- **Role-based access control** (user, business_owner, admin)
+- **Account security** (login attempts, lockout, MFA)
+- **API security** (rate limiting, CORS, validation)
+- **Audit logging** for all security events
 
-- Node.js 18.x or higher
-- npm or yarn
+## 🗄️ Database (CouchDB)
 
-### Installation
+**Document Types:**
+- Users, Businesses, Subscriptions, Reviews, Events, Bookings
+- Security audits, Sessions
 
-1. Clone the repository:
-   \`\`\`bash
-   git clone https://github.com/your-username/mtaani.git
-   cd mtaani
-   \`\`\`
+**Features:**
+- NoSQL document storage
+- Built-in replication and clustering
+- REST API integration
+- Geospatial queries for location-based search
 
-2. Install dependencies:
-   \`\`\`bash
-   npm install
-   # or
-   yarn install
-   \`\`\`
+## 💳 Subscription System
 
-3. Run the development server:
-   \`\`\`bash
-   npm run dev
-   # or
-   yarn dev
-   \`\`\`
+**Plans:** Starter (Free), Professional (KES 3,900/month), Enterprise (KES 9,900/month)
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+**Features:**
+- Business listings, photo uploads, digital menus
+- Appointment booking, analytics, API access
+- Usage tracking and limits enforcement
+- M-Pesa and Stripe payment integration
 
-## Development Workflow
+## 🔧 Environment Configuration
 
-### Branch Strategy
+Single `.env.local` file contains all configuration:
 
-- `main`: Production-ready code
-- `develop`: Integration branch for features
-- `feature/feature-name`: For new features
-- `bugfix/bug-name`: For bug fixes
+```bash
+# Critical (pre-generated secure values)
+JWT_SECRET=mK8vN2pQ7rS9tU1wX4yZ6aB3cD5eF8gH...
+SECURITY_VALIDATION_TOKEN=dev_validation_token_2024_secure...
+COUCHDB_PASSWORD=dev_couchdb_password_2024_secure
 
-### Commit Convention
+# Add your API keys
+SENDGRID_API_KEY=your_sendgrid_key
+MPESA_CONSUMER_KEY=your_mpesa_key
+GOOGLE_MAPS_API_KEY=your_maps_key
+```
 
-We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+## 📡 API Endpoints
 
-\`\`\`
-feat: add business search functionality
-fix: resolve carousel navigation issue
-docs: update README with API documentation
-style: format code with prettier
-refactor: restructure business card component
-test: add tests for review system
-\`\`\`
+**Authentication:**
+- `POST /api/auth/login` - User login
+- `POST /api/auth/signup` - User registration
+- `POST /api/auth/logout` - Logout
+- `POST /api/auth/refresh` - Token refresh
 
-## Key Features
+**Business:**
+- `GET /api/businesses` - Search businesses
+- `POST /api/businesses` - Create business
+- `GET /api/businesses/[id]` - Get business details
+- `PUT /api/businesses/[id]` - Update business
 
-### Current Features
+**Subscription:**
+- `POST /api/subscription/validate` - Validate feature access
+- `POST /api/subscription/upgrade` - Upgrade plan
 
-- Business directory with detailed business pages
-- Event listings and calendar
-- Community forum and local news
-- Business and event submission forms
-- Admin dashboard for content management
-- Review system for businesses and events
-- Category browsing with interactive carousel
-- Featured businesses and events section
+## 🛠️ Development
 
-### Components and Pages
+```bash
+# Development server
+npm run dev
 
-- **Business Components**: Business cards, detail pages, search, filters
-- **Event Components**: Event cards, calendar, registration
-- **Community Components**: Discussion forum, news feed, user profiles
-- **Admin Components**: Dashboard, content moderation, analytics
-- **Form Components**: Business submission, event creation, reviews
+# Build for production
+npm run build
 
-## Component Library
+# Start production server
+npm start
 
-We use shadcn/ui components as building blocks. These are located in `components/ui/`. For custom components, follow these guidelines:
+# Type checking
+npm run type-check
 
-1. Create reusable components in the `components/` directory
-2. Use TypeScript interfaces for props
-3. Follow the component naming convention: `ComponentName.tsx`
-4. Include proper JSDoc comments for complex components
+# Linting
+npm run lint
+```
 
-Example component structure:
+## 🚀 Deployment
 
-\`\`\`tsx
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+1. **Environment Setup:**
+   ```bash
+   # Generate production secrets
+   node scripts/setup-env.js production
+   ```
 
-interface MyComponentProps {
-  /** Description of the prop */
-  title: string
-  /** Optional callback function */
-  onAction?: () => void
-}
+2. **CouchDB Setup:**
+   ```bash
+   # Follow COUCHDB_SETUP_GUIDE.md
+   docker-compose up -d
+   ```
 
-/**
- * MyComponent - Description of what this component does
- */
-export function MyComponent({ title, onAction }: MyComponentProps) {
-  const [state, setState] = useState(false)
-  
-  return (
-    <div>
-      <h2>{title}</h2>
-      <Button onClick={onAction}>Click me</Button>
-    </div>
-  )
-}
-\`\`\`
+3. **Build & Deploy:**
+   ```bash
+   npm run build
+   NODE_ENV=production npm start
+   ```
 
-## State Management
+## 📚 Documentation
 
-For simple state, we use React's built-in hooks (`useState`, `useReducer`). For more complex state management, we plan to implement:
+- **[CouchDB Setup Guide](COUCHDB_SETUP_GUIDE.md)** - Database setup and configuration
+- **[API Documentation](API_DOCUMENTATION.md)** - Complete REST API reference
+- **[Environment Setup](ENVIRONMENT_SETUP.md)** - Environment configuration guide
 
-- React Context for theme, user authentication, and app-wide settings
-- Server Components for data fetching where appropriate
-- Client Components with hooks for interactive UI elements
-
-## API Integration
-
-(To be implemented)
-
-We'll be building a REST API with the following endpoints:
-
-- `/api/businesses` - Business CRUD operations
-- `/api/events` - Event CRUD operations
-- `/api/users` - User management
-- `/api/reviews` - Review system
-- `/api/search` - Search functionality
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'feat: add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open Pull Request
 
-## Code Standards
+## 📄 License
 
-- Use TypeScript for type safety
-- Follow ESLint and Prettier configurations
-- Write meaningful comments and documentation
-- Use semantic HTML and ensure accessibility
-- Optimize for performance and SEO
-- Write unit tests for critical functionality
+MIT License - see [LICENSE](LICENSE) file for details.
 
-## Testing
+---
 
-(To be implemented)
+**Demo Accounts:**
+- User: `user@example.com` / `secret123`
+- Business: `business@example.com` / `secret123`
+- Admin: `admin@example.com` / `secret123`
 
-We plan to use:
-- Jest for unit testing
-- React Testing Library for component testing
-- Cypress for end-to-end testing
-
-## Deployment
-
-(To be implemented)
-
-We plan to deploy on Vercel with the following environments:
-- Production: main branch
-- Staging: develop branch
-- Preview: PR deployments
+Built with ❤️ for Kenyan communities

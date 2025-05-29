@@ -168,18 +168,44 @@ export default function SubmitBusinessPage() {
     setSubmitError("")
 
     try {
-      // Simulate API call
+      // Prepare submission data for business API
       const submissionData = {
-        ...formData,
-        images: uploadedImages.map(file => file.name),
-        submittedAt: new Date().toISOString(),
-        status: "pending_approval"
+        name: formData.businessName,
+        description: formData.description,
+        category: formData.category,
+        subcategory: '', // Could be added to form later
+        email: formData.email,
+        phone: formData.phone,
+        address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
+        county: formData.state, // Using state as county for now
+        town: formData.city,
+        coordinates: [-74.006, 40.7128], // Default NYC coordinates - in production, geocode the address
+        // Additional fields that could be stored in a separate submission table
+        longDescription: formData.longDescription,
+        website: formData.website,
+        hours: formData.hours,
+        priceRange: formData.priceRange,
+        features: formData.features,
+        images: uploadedImages.map(file => file.name), // In production, upload files first
+        socialMedia: formData.socialMedia
       }
 
       console.log("Submitting business for approval:", submissionData)
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Make API call to submit business
+      const response = await fetch('/api/businesses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to submit business')
+      }
 
       setSubmitSuccess(true)
 
@@ -221,7 +247,7 @@ export default function SubmitBusinessPage() {
       }, 3000)
 
     } catch (error) {
-      setSubmitError("Failed to submit business listing. Please try again.")
+      setSubmitError(error instanceof Error ? error.message : "Failed to submit business listing. Please try again.")
       console.error("Submission error:", error)
     } finally {
       setIsSubmitting(false)

@@ -120,18 +120,28 @@ export default function SubmitEventPage() {
     setSubmitError("")
 
     try {
-      // Simulate API call
+      // Prepare submission data
       const submissionData = {
         ...formData,
-        images: uploadedImages.map(file => file.name),
-        submittedAt: new Date().toISOString(),
-        status: "pending_approval"
+        images: uploadedImages.map(file => file.name), // In production, upload files first
       }
 
       console.log("Submitting event for approval:", submissionData)
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Make API call to submit event
+      const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to submit event')
+      }
 
       setSubmitSuccess(true)
 
@@ -165,7 +175,7 @@ export default function SubmitEventPage() {
       }, 3000)
 
     } catch (error) {
-      setSubmitError("Failed to submit event. Please try again.")
+      setSubmitError(error instanceof Error ? error.message : "Failed to submit event. Please try again.")
       console.error("Submission error:", error)
     } finally {
       setIsSubmitting(false)

@@ -132,7 +132,7 @@ export default function BusinessesPage() {
   // Load businesses data (online or cached)
   useEffect(() => {
     loadBusinesses()
-  }, [isOnline, userLocation])
+  }, [isOnline, userLocation, selectedCategory])
 
   // Load cached user location on mount
   useEffect(() => {
@@ -144,13 +144,31 @@ export default function BusinessesPage() {
       setLoading(true)
 
       if (isOnline) {
-        // Simulate API call - in real app, this would be an actual API call
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-        setBusinesses(mockBusinesses)
-        setFromCache(false)
+        // Make real API call to fetch businesses
+        const params = new URLSearchParams()
+        if (userLocation) {
+          params.append('lat', userLocation.latitude.toString())
+          params.append('lng', userLocation.longitude.toString())
+          params.append('radius', '10') // 10km radius
+        }
+        if (selectedCategory && selectedCategory !== 'all') {
+          params.append('category', selectedCategory)
+        }
+        params.append('limit', '50')
 
-        // Cache the fresh data
-        await offlineCache.cacheBusinesses(mockBusinesses, userLocation || undefined)
+        const response = await fetch(`/api/businesses?${params.toString()}`)
+
+        if (response.ok) {
+          const data = await response.json()
+          const businessList = data.data?.businesses || []
+          setBusinesses(businessList)
+          setFromCache(false)
+
+          // Cache the fresh data
+          await offlineCache.cacheBusinesses(businessList, userLocation || undefined)
+        } else {
+          throw new Error('Failed to fetch businesses')
+        }
       } else {
         // Load from cache when offline
         const cachedBusinesses = await offlineCache.getCachedBusinesses(userLocation || undefined)
@@ -168,6 +186,9 @@ export default function BusinessesPage() {
           setFromCache(true)
         } catch (cacheError) {
           console.error("Cache fallback failed:", cacheError)
+          // If all else fails, show mock data as last resort
+          setBusinesses(mockBusinesses)
+          setFromCache(false)
         }
       }
     } finally {

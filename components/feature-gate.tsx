@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode } from "react"
+import { ReactNode, useState, useEffect } from "react"
 import { Lock, Crown, Zap, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -31,13 +31,71 @@ export function FeatureGate({
   upgradeDescription,
   className
 }: FeatureGateProps) {
-  const { hasFeature, currentPlan, isOnTrial, trialDaysLeft } = useSubscription()
+  const { hasFeatureSync, currentPlan, isOnTrial, trialDaysLeft } = useSubscription()
+  const [serverValidated, setServerValidated] = useState<boolean | null>(null)
+  const [isValidating, setIsValidating] = useState(false)
 
-  const hasAccess = hasFeature(feature)
+  // Use sync version for immediate UI response, then validate with server
+  const hasAccess = hasFeatureSync(feature)
+
+  // Perform server-side validation on mount and when feature changes
+  useEffect(() => {
+    let isMounted = true
+
+    const validateWithServer = async () => {
+      setIsValidating(true)
+      try {
+        const { hasFeature } = useSubscription()
+        const serverResult = await hasFeature(feature)
+
+        if (isMounted) {
+          setServerValidated(serverResult)
+
+          // If server validation differs from client, log security warning
+          if (serverResult !== hasAccess) {
+            console.warn('Client-server validation mismatch:', {
+              feature,
+              clientResult: hasAccess,
+              serverResult,
+              currentPlan,
+              timestamp: new Date().toISOString()
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Server validation failed:', error)
+        if (isMounted) {
+          setServerValidated(hasAccess) // Fallback to client validation
+        }
+      } finally {
+        if (isMounted) {
+          setIsValidating(false)
+        }
+      }
+    }
+
+    validateWithServer()
+
+    return () => {
+      isMounted = false
+    }
+  }, [feature, hasAccess, currentPlan])
+
+  // Use server validation result if available, otherwise fall back to client
+  const finalHasAccess = serverValidated !== null ? serverValidated : hasAccess
 
   // If user has access, render children
-  if (hasAccess) {
+  if (finalHasAccess) {
     return <>{children}</>
+  }
+
+  // Show loading state during server validation
+  if (isValidating && serverValidated === null) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+      </div>
+    )
   }
 
   // If custom fallback is provided, use it
@@ -53,14 +111,14 @@ export function FeatureGate({
   // Determine required plan if not specified
   const getRequiredPlan = (): SubscriptionPlan => {
     if (requiredPlan) return requiredPlan
-    
+
     // Basic feature mapping
     const enterpriseFeatures = ['loyaltyPrograms', 'customBranding', 'apiAccess', 'multiLocation', 'dedicatedSupport']
     const professionalFeatures = ['analyticsBasic', 'digitalMenu', 'appointmentBooking', 'reviewManagement']
-    
+
     if (enterpriseFeatures.includes(feature)) return 'enterprise'
     if (professionalFeatures.includes(feature)) return 'professional'
-    
+
     return 'professional' // Default to professional for most features
   }
 

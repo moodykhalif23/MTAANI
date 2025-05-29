@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Users,
   Building2,
@@ -27,8 +27,113 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
+// Admin token for API calls
+const ADMIN_TOKEN = process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_TOKEN || 'dev_admin_token_789'
+
+interface PendingBusiness {
+  id: string
+  name: string
+  category: string
+  status: string
+  contact: {
+    email: string
+  }
+  createdAt: string
+}
+
+interface PendingEvent {
+  id: string
+  title: string
+  category: string
+  status: string
+  organizerEmail: string
+  submittedAt: string
+}
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
+  const [pendingBusinesses, setPendingBusinesses] = useState<PendingBusiness[]>([])
+  const [pendingEvents, setPendingEvents] = useState<PendingEvent[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch pending submissions
+  const fetchPendingSubmissions = async () => {
+    try {
+      setLoading(true)
+
+      // Fetch pending businesses
+      const businessResponse = await fetch(`/api/businesses?status=pending_approval&adminToken=${ADMIN_TOKEN}`)
+      if (businessResponse.ok) {
+        const businessData = await businessResponse.json()
+        setPendingBusinesses(businessData.data?.businesses || [])
+      }
+
+      // Fetch pending events
+      const eventResponse = await fetch(`/api/events?status=pending_approval&adminToken=${ADMIN_TOKEN}`)
+      if (eventResponse.ok) {
+        const eventData = await eventResponse.json()
+        setPendingEvents(eventData.data?.events || [])
+      }
+    } catch (error) {
+      console.error('Error fetching pending submissions:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Handle business approval/rejection
+  const handleBusinessAction = async (businessId: string, action: 'approve' | 'reject') => {
+    try {
+      const response = await fetch(`/api/businesses/${businessId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action,
+          adminToken: ADMIN_TOKEN
+        })
+      })
+
+      if (response.ok) {
+        // Refresh the pending businesses list
+        fetchPendingSubmissions()
+      } else {
+        console.error('Failed to update business status')
+      }
+    } catch (error) {
+      console.error('Error updating business:', error)
+    }
+  }
+
+  // Handle event approval/rejection
+  const handleEventAction = async (eventId: string, action: 'approve' | 'reject') => {
+    try {
+      const response = await fetch(`/api/events/${eventId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action,
+          adminToken: ADMIN_TOKEN
+        })
+      })
+
+      if (response.ok) {
+        // Refresh the pending events list
+        fetchPendingSubmissions()
+      } else {
+        console.error('Failed to update event status')
+      }
+    } catch (error) {
+      console.error('Error updating event:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchPendingSubmissions()
+  }, [])
 
   const stats = {
     totalBusinesses: 1247,
@@ -37,26 +142,9 @@ export default function AdminDashboard() {
     pendingReviews: 23,
     monthlyGrowth: 12.5,
     activeUsers: 8934,
+    pendingBusinesses: pendingBusinesses.length,
+    pendingEvents: pendingEvents.length,
   }
-
-  const pendingBusinesses = [
-    {
-      id: 1,
-      name: "New Coffee Shop",
-      category: "Café",
-      submittedBy: "John Smith",
-      submittedDate: "2024-01-15",
-      status: "pending",
-    },
-    {
-      id: 2,
-      name: "Tech Repair Pro",
-      category: "Services",
-      submittedBy: "Sarah Johnson",
-      submittedDate: "2024-01-14",
-      status: "pending",
-    },
-  ]
 
   const recentReviews = [
     {
@@ -183,51 +271,95 @@ export default function AdminDashboard() {
               <Card>
                 <CardHeader>
                   <CardTitle>Pending Business Approvals</CardTitle>
-                  <CardDescription>Businesses waiting for approval</CardDescription>
+                  <CardDescription>Businesses waiting for approval ({stats.pendingBusinesses})</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {pendingBusinesses.map((business) => (
-                      <div key={business.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <h4 className="font-medium">{business.name}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {business.category} • {business.submittedDate}
-                          </p>
+                    {loading ? (
+                      <div className="text-center py-4 text-muted-foreground">Loading...</div>
+                    ) : pendingBusinesses.length === 0 ? (
+                      <div className="text-center py-4 text-muted-foreground">No pending business approvals</div>
+                    ) : (
+                      pendingBusinesses.map((business) => (
+                        <div key={business.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <h4 className="font-medium">{business.name}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {business.category} • {new Date(business.createdAt).toLocaleDateString()}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {business.contact.email}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleBusinessAction(business.id, 'approve')}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleBusinessAction(business.id, 'reject')}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <XCircle className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>Latest platform activity</CardDescription>
+                  <CardTitle>Pending Event Approvals</CardTitle>
+                  <CardDescription>Events waiting for approval ({stats.pendingEvents})</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <Alert>
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>3 new businesses submitted today</AlertDescription>
-                    </Alert>
-                    <Alert>
-                      <TrendingUp className="h-4 w-4" />
-                      <AlertDescription>User engagement up 15% this week</AlertDescription>
-                    </Alert>
-                    <Alert>
-                      <Star className="h-4 w-4" />
-                      <AlertDescription>23 reviews pending moderation</AlertDescription>
-                    </Alert>
+                    {loading ? (
+                      <div className="text-center py-4 text-muted-foreground">Loading...</div>
+                    ) : pendingEvents.length === 0 ? (
+                      <div className="text-center py-4 text-muted-foreground">No pending event approvals</div>
+                    ) : (
+                      pendingEvents.map((event) => (
+                        <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <h4 className="font-medium">{event.title}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {event.category} • {new Date(event.submittedAt).toLocaleDateString()}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {event.organizerEmail}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEventAction(event.id, 'approve')}
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEventAction(event.id, 'reject')}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>

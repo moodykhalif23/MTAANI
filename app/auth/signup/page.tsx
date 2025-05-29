@@ -49,11 +49,24 @@ export default function SignupPage() {
     setIsLoading(true)
 
     try {
-      const success = await signup(formData.email, formData.password, formData.name, formData.role)
-      if (success) {
-        router.push("/")
+      const result = await signup(
+        formData.email,
+        formData.password,
+        formData.name,
+        formData.role,
+        formData.agreeToTerms
+      )
+
+      if (result.success) {
+        if (result.requiresVerification) {
+          // Show verification message
+          setError("Account created! Please check your email to verify your account.")
+        } else {
+          // User is logged in immediately
+          router.push("/")
+        }
       } else {
-        setError("Failed to create account. Please try again.")
+        setError(result.error || "Failed to create account. Please try again.")
       }
     } catch (error) {
       setError("An error occurred. Please try again.")
