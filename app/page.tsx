@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import {
   Search,
@@ -10,8 +9,6 @@ import {
   Users,
   TrendingUp,
   Clock,
-  ChevronLeft,
-  ChevronRight,
   Coffee,
   Dumbbell,
   Utensils,
@@ -30,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AuthHeader } from "@/components/auth-header"
 import { Footer } from "@/components/footer"
 import Link from "next/link"
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel"
 
 const allFeaturedBusinesses = [
   {
@@ -326,10 +324,6 @@ const allFeaturedEvents = [
 ]
 
 export default function HomePage() {
-  const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0)
-  const [isCarouselPaused, setIsCarouselPaused] = useState(false)
-  const carouselRef = useRef<NodeJS.Timeout | null>(null)
-
   const categories = [
     {
       name: "Restaurants",
@@ -351,40 +345,6 @@ export default function HomePage() {
 
   const featuredBusinesses = allFeaturedBusinesses.slice(0, MAX_FEATURED_ITEMS);
   const featuredEvents = allFeaturedEvents.slice(0, MAX_FEATURED_ITEMS);
-
-  // Carousel auto-scroll functionality
-  useEffect(() => {
-    if (!isCarouselPaused) {
-      carouselRef.current = setInterval(() => {
-        setCurrentCategoryIndex((prevIndex) => (prevIndex === categories.length - 4 ? 0 : prevIndex + 1))
-      }, 3000)
-    }
-
-    return () => {
-      if (carouselRef.current) {
-        clearInterval(carouselRef.current)
-      }
-    }
-  }, [isCarouselPaused, categories.length])
-
-  const handleCategoryClick = (index: number) => {
-    setIsCarouselPaused(true)
-    setCurrentCategoryIndex(index)
-    // Resume after 5 seconds
-    setTimeout(() => setIsCarouselPaused(false), 5000)
-  }
-
-  const nextCategory = () => {
-    setIsCarouselPaused(true)
-    setCurrentCategoryIndex((prevIndex) => (prevIndex === categories.length - 4 ? 0 : prevIndex + 1))
-    setTimeout(() => setIsCarouselPaused(false), 5000)
-  }
-
-  const prevCategory = () => {
-    setIsCarouselPaused(true)
-    setCurrentCategoryIndex((prevIndex) => (prevIndex === 0 ? categories.length - 4 : prevIndex - 1))
-    setTimeout(() => setIsCarouselPaused(false), 5000)
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -455,16 +415,12 @@ export default function HomePage() {
           </div>
 
           <div className="relative max-w-6xl mx-auto">
-            {/* Carousel Container */}
-            <div className="overflow-hidden rounded-2xl">
-              <div
-                className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${currentCategoryIndex * 25}%)` }}
-              >
+            <Carousel opts={{ align: 'start', slidesToScroll: 1, dragFree: true, loop: true }}>
+              <CarouselContent className="pl-0">
                 {categories.map((category, index) => {
                   const IconComponent = category.icon
                   return (
-                    <div key={index} className="w-1/4 flex-shrink-0 px-3" onClick={() => handleCategoryClick(index)}>
+                    <CarouselItem key={index} className="basis-1/4 px-3">
                       <Card className="group cursor-pointer hover:shadow-2xl transition-all duration-300 border-0 shadow-lg bg-white/90 backdrop-blur h-full">
                         <CardContent className="p-6 text-center">
                           <div
@@ -481,42 +437,13 @@ export default function HomePage() {
                           </Badge>
                         </CardContent>
                       </Card>
-                    </div>
+                    </CarouselItem>
                   )
                 })}
-              </div>
-            </div>
-
-            {/* Navigation Arrows */}
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur border-gray-200 hover:bg-white hover:shadow-lg z-10"
-              onClick={prevCategory}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur border-gray-200 hover:bg-white hover:shadow-lg z-10"
-              onClick={nextCategory}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-
-            {/* Carousel Indicators */}
-            <div className="flex justify-center mt-6 space-x-2">
-              {Array.from({ length: categories.length - 3 }).map((_, index) => (
-                <button
-                  key={index}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index === currentCategoryIndex ? "bg-[#0A558C] scale-110" : "bg-gray-300 hover:bg-gray-400"
-                  }`}
-                  onClick={() => handleCategoryClick(index)}
-                />
-              ))}
-            </div>
+              </CarouselContent>
+              <CarouselPrevious className="left-4" />
+              <CarouselNext className="right-4" />
+            </Carousel>
           </div>
         </div>
       </section>

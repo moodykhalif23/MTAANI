@@ -8,7 +8,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center space-x-3 mb-6">
-              <div className="relative h-10 w-10 p-2 rounded-xl bg-gradient-to-br from-[#0A558C]/10 to-[#0A558C]/5 shadow-lg">
+              <div className="relative h-16 w-16 md:h-20 md:w-20 p-2 rounded-2xl bg-gradient-to-br from-[#0A558C]/10 to-[#0A558C]/5 shadow-lg">
                 <Image
                   src="/mtaani-high-resolution-logo-transparent.png"
                   alt="Mtaani"

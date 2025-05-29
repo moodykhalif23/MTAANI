@@ -43,7 +43,7 @@ export function AuthHeader() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Link href="/" className="flex items-center space-x-3 group">
-              <div className="relative h-14 w-14 p-2 rounded-xl bg-gradient-to-br from-[#0A558C]/10 to-[#0A558C]/5 group-hover:from-[#0A558C]/20 group-hover:to-[#0A558C]/10 transition-all duration-300 shadow-lg group-hover:shadow-xl">
+              <div className="relative h-20 w-20 md:h-24 md:w-24 p-2 rounded-2xl bg-gradient-to-br from-[#0A558C]/10 to-[#0A558C]/5 group-hover:from-[#0A558C]/20 group-hover:to-[#0A558C]/10 transition-all duration-300 shadow-lg group-hover:shadow-xl">
                 <Image
                   src="/mtaani-high-resolution-logo-transparent.png"
                   alt="Mtaani"

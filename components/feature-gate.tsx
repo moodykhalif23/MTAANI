@@ -31,15 +31,11 @@ export function FeatureGate({
   upgradeDescription,
   className
 }: FeatureGateProps) {
-  const { hasFeatureSync, currentPlan, isOnTrial, trialDaysLeft } = useSubscription()
+  const { hasFeatureSync, currentPlan, isOnTrial, trialDaysLeft, hasFeature } = useSubscription()
   const [serverValidated, setServerValidated] = useState<boolean | null>(null)
   const [isValidating, setIsValidating] = useState(false)
 
-  // Use sync version for immediate UI response, then validate with server
-  const hasAccess = hasFeatureSync(feature)
-
-  // Perform server-side validation on mount and when feature changes
-  const { hasFeature } = useSubscription()
+  const hasAccess = hasFeatureSync ? hasFeatureSync(feature) : hasFeature(feature)
 
   useEffect(() => {
     let isMounted = true
@@ -52,7 +48,6 @@ export function FeatureGate({
         if (isMounted) {
           setServerValidated(serverResult)
 
-          // If server validation differs from client, log security warning
           if (serverResult !== hasAccess) {
             console.warn('Client-server validation mismatch:', {
               feature,
@@ -120,7 +115,7 @@ export function FeatureGate({
     if (enterpriseFeatures.includes(feature)) return 'enterprise'
     if (professionalFeatures.includes(feature)) return 'professional'
 
-    return 'professional' // Default to professional for most features
+    return 'professional'
   }
 
   const targetPlan = getRequiredPlan()
@@ -128,17 +123,12 @@ export function FeatureGate({
 
   const getIcon = () => {
     switch (targetPlan) {
-      case 'enterprise': return Crown
-      case 'professional': return Zap
-      default: return Lock
-    }
-  }
-
-  const getColor = () => {
-    switch (targetPlan) {
-      case 'enterprise': return 'from-purple-500 to-purple-600'
-      case 'professional': return 'from-blue-500 to-blue-600'
-      default: return 'from-gray-500 to-gray-600'
+      case 'enterprise':
+        return EnterpriseIcon
+      case 'professional':
+        return ProfessionalIcon
+      default:
+        return DefaultIcon
     }
   }
 
@@ -148,8 +138,8 @@ export function FeatureGate({
     <div className={className}>
       <Card className="border-dashed border-2 border-gray-300 bg-gray-50/50">
         <CardHeader className="text-center">
-          <div className={`w-16 h-16 bg-gradient-to-br ${getColor()} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg`}>
-            <IconComponent className="h-8 w-8 text-white" />
+          <div className="mb-4 flex justify-center">
+            <IconComponent />
           </div>
           <CardTitle className="text-xl">
             {upgradeTitle || `${planName} Feature`}
@@ -219,6 +209,36 @@ export function FeatureGate({
     </div>
   )
 }
+
+// Icon wrappers for plan icons
+import { SVGProps } from "react"
+
+function EnterpriseIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-700 shadow-lg">
+      <Crown className="h-6 w-6 text-white drop-shadow-lg" {...props} />
+    </span>
+  )
+}
+EnterpriseIcon.displayName = "EnterpriseIcon"
+
+function ProfessionalIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-700 shadow-lg">
+      <Zap className="h-6 w-6 text-white drop-shadow-lg" {...props} />
+    </span>
+  )
+}
+ProfessionalIcon.displayName = "ProfessionalIcon"
+
+function DefaultIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 shadow-md">
+      <Lock className="h-6 w-6 text-white drop-shadow" {...props} />
+    </span>
+  )
+}
+DefaultIcon.displayName = "DefaultIcon"
 
 // Specific feature gates for common use cases
 export function AnalyticsGate({ children, className }: { children: ReactNode; className?: string }) {

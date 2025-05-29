@@ -23,6 +23,7 @@ interface UseSubscriptionReturn {
 
   // Feature checking
   hasFeature: (feature: keyof import("@/lib/subscription-types").SubscriptionFeatures) => boolean
+  hasFeatureSync?: (feature: keyof import("@/lib/subscription-types").SubscriptionFeatures) => boolean
   canUploadPhotos: (currentCount: number) => boolean
   getPhotoLimit: () => number | "unlimited"
 
@@ -321,7 +322,7 @@ export function useSubscription(): UseSubscriptionReturn {
         id: "trial_" + Date.now(),
         userId: "user_123",
         plan,
-        status: "trial",
+        status: "trialing",
         currentPeriodStart: new Date(),
         currentPeriodEnd: trialEnd,
         trialEnd,
@@ -410,7 +411,7 @@ export function useSubscription(): UseSubscriptionReturn {
     businessProfile,
     isLoading,
     error,
-    hasFeature: checkHasFeature, // Async server-validated version
+    hasFeature: checkHasFeatureSync, // Sync client-side version for type compatibility
     hasFeatureSync: checkHasFeatureSync, // Sync client-side version
     canUploadPhotos: checkCanUploadPhotos,
     getPhotoLimit: getPhotoLimitForPlan,
