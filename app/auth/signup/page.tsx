@@ -96,10 +96,6 @@ export default function SignupPage() {
                 priority
               />
             </div>
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-[#0A558C] mb-2 tracking-tight">Mtaani</h1>
-              <p className="text-sm text-gray-500 mb-4">Local Community Platform</p>
-            </div>
           </div>
 
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Join Mtaani</h2>
