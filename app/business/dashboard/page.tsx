@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+
 import {
   BarChart,
   Bar,
@@ -29,7 +29,6 @@ import { AnalyticsGate } from "@/components/feature-gate"
 import Link from "next/link"
 
 export default function BusinessDashboard() {
-  const [timeRange, setTimeRange] = useState("7d")
 
   // Mock data - in real app, this would come from API
   const businessStats = {
@@ -548,7 +547,7 @@ export default function BusinessDashboard() {
                   <Alert>
                     <Star className="h-4 w-4" />
                     <AlertDescription>
-                      Customers frequently mention "great coffee" in reviews. Highlight your coffee specialties in your
+                      Customers frequently mention &quot;great coffee&quot; in reviews. Highlight your coffee specialties in your
                       description.
                     </AlertDescription>
                   </Alert>

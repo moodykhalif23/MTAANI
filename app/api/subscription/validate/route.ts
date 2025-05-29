@@ -157,11 +157,6 @@ export async function GET(request: NextRequest) {
   const userId = searchParams.get('userId')
   const securityToken = searchParams.get('token')
 
-  // Get client IP address
-  const clientIP = request.headers.get('x-forwarded-for') ||
-                   request.headers.get('x-real-ip') ||
-                   'unknown'
-
   if (!userId || !securityToken) {
     return NextResponse.json(
       { error: 'Missing userId or security token' },

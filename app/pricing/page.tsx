@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Check, Star, Zap, Crown, ArrowRight, Users, BarChart3, Shield, Headphones } from "lucide-react"
+import { Check, Crown, ArrowRight, Users, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -250,7 +250,7 @@ export default function PricingPage() {
                   <div className="space-y-3">
                     <h4 className="font-semibold text-gray-900 flex items-center gap-2">
                       <Check className="h-4 w-4 text-green-500" />
-                      What's included:
+                      What&apos;s included:
                     </h4>
                     {plan.features.map((feature, index) => (
                       <div key={index} className="flex items-start gap-3">
@@ -314,7 +314,7 @@ export default function PricingPage() {
             Compare All Features
           </h2>
           <p className="text-xl text-gray-600">
-            See exactly what's included in each plan
+            See exactly what&apos;s included in each plan
           </p>
         </div>
 

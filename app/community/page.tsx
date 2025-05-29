@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import {
-  MapPin,
   Users,
   MessageSquare,
   Calendar,
@@ -29,8 +29,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { AuthHeader } from "@/components/auth-header"
 import { Footer } from "@/components/footer"
-import Link from "next/link"
-
 export default function CommunityPage() {
   const [activeTab, setActiveTab] = useState("discussions")
   const [searchQuery, setSearchQuery] = useState("")
@@ -167,7 +165,7 @@ export default function CommunityPage() {
             Community Hub
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Connect with your neighbors, share local insights, and stay informed about what's happening in your
+            Connect with your neighbors, share local insights, and stay informed about what&apos;s happening in your
             community
           </p>
 
@@ -372,10 +370,11 @@ export default function CommunityPage() {
                   className="overflow-hidden hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-white/80 backdrop-blur"
                 >
                   <div className="aspect-video relative overflow-hidden">
-                    <img
+                    <Image
                       src={article.image || "/placeholder.svg"}
                       alt={article.title}
-                      className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                      fill
+                      className="object-cover hover:scale-105 transition-transform duration-300"
                     />
                     <Badge className="absolute top-4 left-4 bg-white/95 text-gray-800">{article.category}</Badge>
                   </div>

@@ -36,6 +36,7 @@ interface Event {
 
 // In-memory storage (replace with database in production)
 declare global {
+  // eslint-disable-next-line no-var
   var eventsStorage: Event[]
 }
 
@@ -149,8 +150,8 @@ export async function POST(request: NextRequest) {
     }
 
     const missingFields = Object.entries(requiredFields)
-      .filter(([_, value]) => !value)
-      .map(([key, _]) => key)
+      .filter(([, value]) => !value)
+      .map(([key]) => key)
 
     if (missingFields.length > 0) {
       return NextResponse.json(

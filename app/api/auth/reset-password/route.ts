@@ -19,6 +19,7 @@ interface User {
 
 // Import users storage (in production, use database)
 declare global {
+  // eslint-disable-next-line no-var
   var users: Record<string, User>
 }
 
@@ -33,8 +34,8 @@ export async function POST(request: NextRequest) {
     const { token, email, newPassword, confirmPassword } = body
 
     // Get client information
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
+    const clientIP = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
                      'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     const user = global.users[email.toLowerCase()]
-    
+
     if (!user) {
       securityAudit.logEvent(
         'suspicious_activity',
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest) {
     const passwordValidation = validatePasswordStrength(newPassword)
     if (!passwordValidation.isValid) {
       return NextResponse.json(
-        { 
+        {
           error: 'Password does not meet security requirements',
           passwordErrors: passwordValidation.errors,
           passwordScore: passwordValidation.score
@@ -215,7 +216,7 @@ export async function GET(request: NextRequest) {
     }
 
     const user = global.users[email.toLowerCase()]
-    
+
     if (!user) {
       return NextResponse.json({ valid: false, error: 'Invalid reset link' })
     }
@@ -235,7 +236,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ valid: false, error: 'Invalid reset link' })
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       valid: true,
       email: user.email,
       name: user.name

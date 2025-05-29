@@ -377,7 +377,7 @@ export interface SecurityAuditDocument extends BaseDocument {
       os: string
       browser: string
     }
-    [key: string]: any
+    [key: string]: unknown
   }
   resolved: boolean
   resolvedAt?: string
@@ -421,14 +421,14 @@ export interface SessionDocument extends BaseDocument {
 }
 
 // Union type for all documents
-export type MtaaniDocument = 
-  | UserDocument 
-  | BusinessDocument 
-  | SubscriptionDocument 
-  | ReviewDocument 
-  | EventDocument 
-  | BookingDocument 
-  | SecurityAuditDocument 
+export type MtaaniDocument =
+  | UserDocument
+  | BusinessDocument
+  | SubscriptionDocument
+  | ReviewDocument
+  | EventDocument
+  | BookingDocument
+  | SecurityAuditDocument
   | SessionDocument
 
 // Type guards

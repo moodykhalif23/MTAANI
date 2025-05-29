@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAccessToken, extractTokenFromHeader } from '@/lib/jwt'
 import { securityAudit } from '@/lib/security-audit'
 
 // This would import from the same storage as the main events route
@@ -37,6 +36,7 @@ interface Event {
 
 // Import the same storage (in production, use database)
 declare global {
+  // eslint-disable-next-line no-var
   var eventsStorage: Event[]
 }
 
@@ -60,7 +60,7 @@ export async function GET(
     }
 
     const event = global.eventsStorage.find(e => e.id === eventId)
-    
+
     if (!event) {
       return NextResponse.json(
         { error: 'Event not found' },
@@ -124,7 +124,7 @@ export async function PUT(
     }
 
     const eventIndex = global.eventsStorage.findIndex(e => e.id === eventId)
-    
+
     if (eventIndex === -1) {
       return NextResponse.json(
         { error: 'Event not found' },
@@ -135,8 +135,8 @@ export async function PUT(
     const event = global.eventsStorage[eventIndex]
 
     // Get client information for logging
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
+    const clientIP = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
                      'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
@@ -144,13 +144,13 @@ export async function PUT(
       case 'approve':
         event.status = 'approved'
         event.approvedAt = new Date().toISOString()
-        
+
         // Log approval
         securityAudit.logEvent(
           'event_approved',
           'low',
           'Event approved by admin',
-          { 
+          {
             eventId,
             title: event.title,
             organizerEmail: event.organizerEmail
@@ -161,7 +161,7 @@ export async function PUT(
         )
 
         console.log('Event approved:', { eventId, title: event.title })
-        
+
         return NextResponse.json({
           success: true,
           message: 'Event approved successfully',
@@ -172,13 +172,13 @@ export async function PUT(
         event.status = 'rejected'
         event.rejectedAt = new Date().toISOString()
         event.rejectionReason = rejectionReason || 'No reason provided'
-        
+
         // Log rejection
         securityAudit.logEvent(
           'event_rejected',
           'low',
           'Event rejected by admin',
-          { 
+          {
             eventId,
             title: event.title,
             organizerEmail: event.organizerEmail,
@@ -189,12 +189,12 @@ export async function PUT(
           userAgent
         )
 
-        console.log('Event rejected:', { 
-          eventId, 
-          title: event.title, 
-          reason: event.rejectionReason 
+        console.log('Event rejected:', {
+          eventId,
+          title: event.title,
+          reason: event.rejectionReason
         })
-        
+
         return NextResponse.json({
           success: true,
           message: 'Event rejected',
@@ -244,7 +244,7 @@ export async function DELETE(
     }
 
     const eventIndex = global.eventsStorage.findIndex(e => e.id === eventId)
-    
+
     if (eventIndex === -1) {
       return NextResponse.json(
         { error: 'Event not found' },
@@ -256,8 +256,8 @@ export async function DELETE(
     global.eventsStorage.splice(eventIndex, 1)
 
     // Log deletion
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
+    const clientIP = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
                      'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
@@ -265,7 +265,7 @@ export async function DELETE(
       'event_deleted',
       'medium',
       'Event deleted by admin',
-      { 
+      {
         eventId,
         title: event.title,
         organizerEmail: event.organizerEmail

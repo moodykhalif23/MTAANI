@@ -18,6 +18,7 @@ interface User {
 
 // Global storage for users (replace with database in production)
 declare global {
+  // eslint-disable-next-line no-var
   var usersStorage: User[]
 }
 
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
 
     // Find user in storage
     const user = global.usersStorage.find(u => u.id === userId)
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
 
     // Return user profile (exclude sensitive data)
     const { ...userProfile } = user
-    
+
     return NextResponse.json({
       success: true,
       data: { user: userProfile }
@@ -127,7 +128,7 @@ export async function PATCH(request: NextRequest) {
 
     // Find user in storage
     const userIndex = global.usersStorage.findIndex(u => u.id === userId)
-    
+
     if (userIndex === -1) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -179,8 +180,8 @@ export async function PATCH(request: NextRequest) {
     global.usersStorage[userIndex] = updatedUser
 
     // Get client information for logging
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
+    const clientIP = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
                      'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
@@ -189,7 +190,7 @@ export async function PATCH(request: NextRequest) {
       'profile_updated',
       'low',
       'User profile updated',
-      { 
+      {
         userId,
         updatedFields: Object.keys(body),
         oldEmail: user.email,
@@ -270,7 +271,7 @@ export async function PUT(request: NextRequest) {
 
     // Find target user in storage
     const userIndex = global.usersStorage.findIndex(u => u.id === targetUserId)
-    
+
     if (userIndex === -1) {
       return NextResponse.json(
         { error: 'Target user not found' },
@@ -321,8 +322,8 @@ export async function PUT(request: NextRequest) {
     global.usersStorage[userIndex] = updatedUser
 
     // Get client information for logging
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
+    const clientIP = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
                      'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
@@ -331,7 +332,7 @@ export async function PUT(request: NextRequest) {
       'admin_profile_update',
       'medium',
       'Admin updated user profile',
-      { 
+      {
         adminId: userId,
         targetUserId,
         updatedFields: Object.keys(body),

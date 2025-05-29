@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { ArrowLeft, Upload, MapPin, Phone, Globe, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -126,7 +127,7 @@ export default function SubmitBusinessPage() {
       hours: {
         ...prev.hours,
         [day]: {
-          ...(prev.hours as any)[day],
+          ...(prev.hours as Record<string, { open: string; close: string; closed: boolean }>)[day],
           [field]: value,
         },
       },
@@ -173,14 +174,13 @@ export default function SubmitBusinessPage() {
         name: formData.businessName,
         description: formData.description,
         category: formData.category,
-        subcategory: '', // Could be added to form later
+        subcategory: '',
         email: formData.email,
         phone: formData.phone,
         address: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zipCode}`,
         county: formData.state, // Using state as county for now
         town: formData.city,
         coordinates: [-74.006, 40.7128], // Default NYC coordinates - in production, geocode the address
-        // Additional fields that could be stored in a separate submission table
         longDescription: formData.longDescription,
         website: formData.website,
         hours: formData.hours,
@@ -625,11 +625,12 @@ export default function SubmitBusinessPage() {
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                             {uploadedImages.map((file, index) => (
                               <div key={index} className="relative">
-                                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                                  <img
+                                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden relative">
+                                  <Image
                                     src={URL.createObjectURL(file)}
                                     alt={`Upload ${index + 1}`}
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    className="object-cover"
                                   />
                                 </div>
                                 <button
@@ -664,8 +665,8 @@ export default function SubmitBusinessPage() {
 
                     <Alert className="border-blue-200 bg-blue-50">
                       <AlertDescription className="text-blue-800">
-                        Your business listing will be reviewed by our team and published within 24-48 hours. You'll
-                        receive an email confirmation once it's live.
+                        Your business listing will be reviewed by our team and published within 24-48 hours. You&apos;ll
+                        receive an email confirmation once it&apos;s live.
                       </AlertDescription>
                     </Alert>
                   </div>
@@ -684,7 +685,7 @@ export default function SubmitBusinessPage() {
               {submitSuccess && (
                 <Alert className="mt-6 border-green-200 bg-green-50">
                   <AlertDescription className="text-green-800">
-                    🎉 Business listing submitted successfully! Your listing will be reviewed and published within 24-48 hours. You'll receive a confirmation email shortly.
+                    🎉 Business listing submitted successfully! Your listing will be reviewed and published within 24-48 hours. You&apos;ll receive a confirmation email shortly.
                   </AlertDescription>
                 </Alert>
               )}

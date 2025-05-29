@@ -20,8 +20,7 @@ interface PaymentIntent {
 // Mock payment processing - in production, integrate with M-Pesa, Stripe, etc.
 async function processPayment(
   amount: number,
-  currency: string,
-  paymentMethodId?: string
+  currency: string
 ): Promise<PaymentIntent> {
   // Simulate payment processing delay
   await new Promise(resolve => setTimeout(resolve, 1000))
@@ -30,7 +29,7 @@ async function processPayment(
   const success = Math.random() > 0.1 // 90% success rate
 
   return {
-    id: `pi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: `pi_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
     amount,
     currency,
     status: success ? 'succeeded' : 'failed',
@@ -47,7 +46,7 @@ function validateUpgrade(currentPlan: SubscriptionPlan, newPlan: SubscriptionPla
 export async function POST(request: NextRequest) {
   try {
     const body: UpgradeRequest = await request.json()
-    const { userId, newPlan, isAnnual, paymentMethodId, securityToken } = body
+    const { userId, newPlan, isAnnual, securityToken } = body
 
     // Validate required fields
     if (!userId || !newPlan || !securityToken) {
@@ -108,7 +107,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Process payment for paid plans
-    const paymentIntent = await processPayment(amount, 'KES', paymentMethodId)
+    const paymentIntent = await processPayment(amount, 'KES')
 
     if (paymentIntent.status !== 'succeeded') {
       return NextResponse.json(
@@ -142,7 +141,7 @@ export async function POST(request: NextRequest) {
       currency: 'KES',
       paymentId: paymentIntent.id,
       timestamp: new Date().toISOString(),
-      ip: request.ip || 'unknown',
+      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
       userAgent: request.headers.get('user-agent') || 'unknown'
     })
 

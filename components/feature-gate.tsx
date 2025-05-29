@@ -39,13 +39,14 @@ export function FeatureGate({
   const hasAccess = hasFeatureSync(feature)
 
   // Perform server-side validation on mount and when feature changes
+  const { hasFeature } = useSubscription()
+
   useEffect(() => {
     let isMounted = true
 
     const validateWithServer = async () => {
       setIsValidating(true)
       try {
-        const { hasFeature } = useSubscription()
         const serverResult = await hasFeature(feature)
 
         if (isMounted) {
@@ -79,7 +80,7 @@ export function FeatureGate({
     return () => {
       isMounted = false
     }
-  }, [feature, hasAccess, currentPlan])
+  }, [feature, hasAccess, currentPlan, hasFeature])
 
   // Use server validation result if available, otherwise fall back to client
   const finalHasAccess = serverValidated !== null ? serverValidated : hasAccess
@@ -170,7 +171,7 @@ export function FeatureGate({
 
           {/* Feature benefits */}
           <div className="space-y-2">
-            <h4 className="font-medium text-gray-900">What you'll get:</h4>
+            <h4 className="font-medium text-gray-900">What you&apos;ll get:</h4>
             <ul className="text-sm text-gray-600 space-y-1">
               {targetPlan === 'professional' && (
                 <>
@@ -327,7 +328,7 @@ export function UsageLimitGate({
             {featureName} Limit Reached
           </CardTitle>
           <CardDescription className="text-yellow-800">
-            You've used {currentUsage} of {limit === "unlimited" ? "unlimited" : limit} {featureName.toLowerCase()}.
+            You&apos;ve used {currentUsage} of {limit === "unlimited" ? "unlimited" : limit} {featureName.toLowerCase()}.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">

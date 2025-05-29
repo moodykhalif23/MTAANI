@@ -18,9 +18,9 @@ export default function NotificationsSettingsPage() {
             </p>
             <h3 className="font-medium text-slate-800 mb-2">How it works:</h3>
             <ul className="list-disc pl-5 space-y-2 text-slate-600">
-              <li>When you go offline, we track what content you've already seen</li>
+              <li>When you go offline, we track what content you&apos;ve already seen</li>
               <li>When you come back online, we check for new businesses and events</li>
-              <li>If we find new content, we'll send you a notification (based on your preferences)</li>
+              <li>If we find new content, we&apos;ll send you a notification (based on your preferences)</li>
               <li>You can click the notification to view the new content</li>
             </ul>
           </div>

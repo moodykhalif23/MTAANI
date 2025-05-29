@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import Image from "next/image"
 import {
   Search,
   MapPin,
@@ -375,10 +376,11 @@ export default function HomePage() {
                       </Badge>
                     </div>
                     <div className="aspect-video relative overflow-hidden">
-                      <img
+                      <Image
                         src={business.image || "/placeholder.svg"}
                         alt={business.name}
-                        className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
@@ -436,10 +438,11 @@ export default function HomePage() {
                       </Badge>
                     </div>
                     <div className="aspect-video relative overflow-hidden">
-                      <img
+                      <Image
                         src={event.image || "/placeholder.svg"}
                         alt={event.title}
-                        className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>
@@ -617,10 +620,11 @@ export default function HomePage() {
                     className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg bg-white/80 backdrop-blur"
                   >
                     <div className="aspect-video relative overflow-hidden">
-                      <img
+                      <Image
                         src={business.image || "/placeholder.svg"}
                         alt={business.name}
-                        className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <Badge className="absolute top-4 left-4 bg-white/95 text-gray-800 font-medium shadow-lg border-0 hover:bg-white">
@@ -674,10 +678,11 @@ export default function HomePage() {
                     className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg bg-white/80 backdrop-blur"
                   >
                     <div className="aspect-video relative overflow-hidden">
-                      <img
+                      <Image
                         src={event.image || "/placeholder.svg"}
                         alt={event.title}
-                        className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </div>

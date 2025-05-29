@@ -19,6 +19,7 @@ interface User {
 
 // Import users storage from signup route (in production, use database)
 declare global {
+  // eslint-disable-next-line no-var
   var users: Record<string, User>
 }
 
@@ -34,8 +35,8 @@ export async function GET(request: NextRequest) {
     const email = searchParams.get('email')
 
     // Get client information
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
+    const clientIP = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
                      'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
@@ -187,8 +188,8 @@ export async function POST(request: NextRequest) {
     const { email } = body
 
     // Get client information
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
+    const clientIP = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
                      'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
@@ -200,7 +201,7 @@ export async function POST(request: NextRequest) {
     }
 
     const user = global.users[email.toLowerCase()]
-    
+
     if (!user) {
       // Don't reveal if email exists or not for security
       return NextResponse.json({
@@ -217,7 +218,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate new verification token
-    const verificationToken = Math.random().toString(36).substring(2, 15) + 
+    const verificationToken = Math.random().toString(36).substring(2, 15) +
                              Math.random().toString(36).substring(2, 15)
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 

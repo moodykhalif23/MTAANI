@@ -2,8 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
-import { User, Mail, Calendar, Shield, Building, Camera, Save, ArrowLeft } from "lucide-react"
+import { User, Mail, Calendar, Shield, Building, Camera, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,7 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AuthHeader } from "@/components/auth-header"
 import { Footer } from "@/components/footer"
 import { useAuth } from "@/lib/auth-context"
-import Link from "next/link"
+
 
 export default function ProfilePage() {
   const { user, updateProfile, logout } = useAuth()
@@ -40,7 +39,7 @@ export default function ProfilePage() {
         setIsEditing(false)
         setTimeout(() => setMessage(""), 3000)
       }
-    } catch (error) {
+    } catch {
       setMessage("Failed to update profile")
     }
   }
@@ -100,7 +99,12 @@ export default function ProfilePage() {
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Calendar className="h-4 w-4" />
-                    <span>Joined {new Date(user.joinDate).toLocaleDateString()}</span>
+                    <span>
+                      {user.lastLogin
+                        ? `Last login ${new Date(user.lastLogin).toLocaleDateString()}`
+                        : 'Member since account creation'
+                      }
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Shield className="h-4 w-4" />
@@ -201,14 +205,14 @@ export default function ProfilePage() {
                         <div className="flex items-center gap-3 p-3 border rounded-lg">
                           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                           <div className="flex-1">
-                            <p className="text-sm font-medium">Reviewed "The Coffee Corner"</p>
+                            <p className="text-sm font-medium">Reviewed &quot;The Coffee Corner&quot;</p>
                             <p className="text-xs text-gray-500">2 days ago</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3 p-3 border rounded-lg">
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                           <div className="flex-1">
-                            <p className="text-sm font-medium">Joined "Summer Music Festival" event</p>
+                            <p className="text-sm font-medium">Joined &quot;Summer Music Festival&quot; event</p>
                             <p className="text-xs text-gray-500">1 week ago</p>
                           </div>
                         </div>

@@ -165,7 +165,7 @@ class NotificationManager {
       if (savedPrefs) {
         try {
           this.userPreferences = { ...this.userPreferences, ...JSON.parse(savedPrefs) }
-        } catch (e) {
+        } catch {
           console.error("Error parsing saved notification preferences")
         }
       }
@@ -196,7 +196,7 @@ class NotificationManager {
     return false
   }
 
-  async compareAndNotify(oldData: any[], newData: any[], type: "businesses" | "events"): Promise<void> {
+  async compareAndNotify(oldData: Array<{ id: string; name: string }>, newData: Array<{ id: string; name: string }>, type: "businesses" | "events"): Promise<void> {
     if (!this.userPreferences.enabled || this.notificationPermission !== "granted") return
 
     // Skip if specific notification type is disabled

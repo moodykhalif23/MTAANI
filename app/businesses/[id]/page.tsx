@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import {
   ArrowLeft,
   MapPin,
@@ -95,14 +96,12 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
   const [selectedImage, setSelectedImage] = useState(0)
   const [isFavorited, setIsFavorited] = useState(false)
   const [business, setBusiness] = useState(businessData) // Start with fallback data
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [,] = useState(true)
 
   // Fetch business data from API
   useEffect(() => {
     const fetchBusiness = async () => {
       try {
-        setLoading(true)
         const response = await fetch(`/api/businesses/${params.id}`)
 
         if (response.ok) {
@@ -128,15 +127,10 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
               menu: businessData.menu // Keep default menu for now
             })
           }
-        } else {
-          setError('Failed to load business details')
         }
       } catch (err) {
         console.error('Error fetching business:', err)
-        setError('Failed to load business details')
         // Keep using fallback data
-      } finally {
-        setLoading(false)
       }
     }
 
@@ -178,10 +172,11 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           <div className="lg:col-span-2">
             <div className="aspect-video relative overflow-hidden rounded-lg mb-4">
-              <img
+              <Image
                 src={business.images[selectedImage] || "/placeholder.svg"}
                 alt={business.name}
-                className="object-cover w-full h-full"
+                fill
+                className="object-cover"
               />
               <div className="absolute bottom-4 left-4 flex gap-2">
                 {business.images.map((_, index) => (
@@ -203,9 +198,9 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index + 1)}
-                  className="aspect-video w-24 overflow-hidden rounded border-2 border-transparent hover:border-primary transition-colors"
+                  className="aspect-video w-24 overflow-hidden rounded border-2 border-transparent hover:border-primary transition-colors relative"
                 >
-                  <img src={image || "/placeholder.svg"} alt="" className="object-cover w-full h-full" />
+                  <Image src={image || "/placeholder.svg"} alt="" fill className="object-cover" />
                 </button>
               ))}
             </div>
@@ -304,11 +299,14 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {["Signature Latte", "Fresh Croissant", "Artisan Sandwich", "Cold Brew"].map((item) => (
                         <div key={item} className="flex items-center gap-3 p-3 border rounded-lg">
-                          <img
-                            src="/placeholder.svg?height=60&width=60"
-                            alt={item}
-                            className="w-15 h-15 object-cover rounded"
-                          />
+                          <div className="w-15 h-15 relative rounded overflow-hidden">
+                            <Image
+                              src="/placeholder.svg?height=60&width=60"
+                              alt={item}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
                           <div>
                             <h4 className="font-medium">{item}</h4>
                             <p className="text-sm text-muted-foreground">Popular choice</p>

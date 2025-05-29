@@ -7,7 +7,7 @@ import { securityAudit } from '@/lib/security-audit'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    
+
     // Extract search parameters
     const query = searchParams.get('q')
     const category = searchParams.get('category')
@@ -21,7 +21,17 @@ export async function GET(request: NextRequest) {
     const skip = parseInt(searchParams.get('skip') || '0')
 
     // Build search criteria
-    const searchCriteria: any = {
+    const searchCriteria: {
+      limit: number
+      skip: number
+      query?: string
+      category?: string
+      county?: string
+      town?: string
+      verified?: boolean
+      coordinates?: [number, number]
+      radius?: number
+    } = {
       limit: Math.min(limit, 100), // Max 100 results
       skip: Math.max(skip, 0)
     }
@@ -36,10 +46,10 @@ export async function GET(request: NextRequest) {
     if (lat && lng) {
       const latitude = parseFloat(lat)
       const longitude = parseFloat(lng)
-      
+
       if (!isNaN(latitude) && !isNaN(longitude)) {
         searchCriteria.coordinates = [longitude, latitude]
-        
+
         if (radius) {
           const radiusKm = parseFloat(radius)
           if (!isNaN(radiusKm) && radiusKm > 0) {
@@ -53,22 +63,20 @@ export async function GET(request: NextRequest) {
     const result = await businessService.searchBusinesses(searchCriteria)
 
     // Log search for analytics
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown'
-
     securityAudit.logEvent(
       'business_search',
       'low',
       'Business search performed',
-      { 
-        query, 
-        category, 
-        county, 
-        resultsCount: result.businesses.length 
+      {
+        query,
+        category,
+        county,
+        resultsCount: result.businesses.length
       },
       undefined,
-      clientIP,
+      request.headers.get('x-forwarded-for') ||
+      request.headers.get('x-real-ip') ||
+      'unknown',
       request.headers.get('user-agent') || 'unknown'
     )
 
@@ -107,9 +115,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Business search error:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to search businesses' 
+      {
+        success: false,
+        error: 'Failed to search businesses'
       },
       { status: 500 }
     )
@@ -119,16 +127,10 @@ export async function GET(request: NextRequest) {
 // POST /api/businesses - Create a new business
 export async function POST(request: NextRequest) {
   try {
-    // Get client information
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown'
-    const userAgent = request.headers.get('user-agent') || 'unknown'
-
     // Verify authentication
     const authHeader = request.headers.get('authorization')
     const accessToken = extractTokenFromHeader(authHeader)
-    
+
     if (!accessToken) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -246,9 +248,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Business creation error:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to create business' 
+      {
+        success: false,
+        error: 'Failed to create business'
       },
       { status: 500 }
     )

@@ -19,6 +19,7 @@ interface User {
 
 // Import users storage (in production, use database)
 declare global {
+  // eslint-disable-next-line no-var
   var users: Record<string, User>
 }
 
@@ -35,10 +36,10 @@ async function sendPasswordResetEmail(email: string, token: string, name: string
     // In production, integrate with email service (SendGrid, AWS SES, etc.)
     console.log(`📧 Password reset email for ${name} (${email}):`)
     console.log(`Reset link: ${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`)
-    
+
     // Simulate email sending delay
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     return true
   } catch (error) {
     console.error('Failed to send password reset email:', error)
@@ -53,8 +54,8 @@ export async function POST(request: NextRequest) {
     const { email } = body
 
     // Get client information
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
+    const clientIP = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
                      'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
@@ -77,15 +78,15 @@ export async function POST(request: NextRequest) {
     // Rate limiting - max 3 attempts per hour per IP
     const now = new Date()
     const hourAgo = new Date(now.getTime() - 60 * 60 * 1000)
-    
+
     if (resetAttempts[clientIP]) {
       const attempts = resetAttempts[clientIP]
-      
+
       // Reset counter if last attempt was over an hour ago
       if (attempts.lastAttempt < hourAgo) {
         attempts.count = 0
       }
-      
+
       if (attempts.count >= 3) {
         securityAudit.logEvent(
           'suspicious_activity',
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
           { status: 429 }
         )
       }
-      
+
       attempts.count++
       attempts.lastAttempt = now
     } else {
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
     }
 
     const user = global.users[email.toLowerCase()]
-    
+
     // Always return success to prevent email enumeration
     const successResponse = {
       success: true,
@@ -159,13 +160,13 @@ export async function POST(request: NextRequest) {
 
     // Send password reset email
     const emailSent = await sendPasswordResetEmail(email, resetToken, user.name)
-    
+
     if (!emailSent) {
       // Remove reset token if email failed to send
       user.passwordResetToken = undefined
       user.passwordResetExpires = undefined
       global.users[email.toLowerCase()] = user
-      
+
       return NextResponse.json(
         { error: 'Failed to send password reset email. Please try again.' },
         { status: 500 }
@@ -215,7 +216,7 @@ export async function GET(request: NextRequest) {
     }
 
     const user = global.users[email.toLowerCase()]
-    
+
     if (!user) {
       return NextResponse.json({ valid: false, error: 'Invalid reset link' })
     }

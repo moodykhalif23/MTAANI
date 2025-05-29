@@ -7,7 +7,7 @@ interface SecurityEvent {
   eventType: 'subscription_access' | 'plan_upgrade' | 'payment_attempt' | 'feature_bypass_attempt' | 'usage_limit_exceeded' | 'invalid_token' | 'suspicious_activity'
   severity: 'low' | 'medium' | 'high' | 'critical'
   description: string
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
   ipAddress?: string
   userAgent?: string
   resolved: boolean
@@ -60,7 +60,7 @@ export class SecurityAudit {
     eventType: SecurityEvent['eventType'],
     severity: SecurityEvent['severity'],
     description: string,
-    metadata: Record<string, any> = {},
+    metadata: Record<string, unknown> = {},
     userId?: string,
     ipAddress?: string,
     userAgent?: string
@@ -421,7 +421,12 @@ export class SecurityAudit {
     }
   }
 
-  private getRequestPattern(ipAddress?: string, userId?: string): any {
+  private getRequestPattern(ipAddress?: string, userId?: string): {
+    ipRequests: number
+    userRequests: number
+    isBlocked: boolean
+    isSuspicious: boolean
+  } {
     return {
       ipRequests: ipAddress ? this.ipRequestCounts.get(ipAddress)?.count || 0 : 0,
       userRequests: userId ? this.userActivityPatterns.get(userId)?.requestCount || 0 : 0,

@@ -1,4 +1,4 @@
-import { couchdb, generateDocId } from '../couchdb'
+import { couchdb } from '../couchdb'
 import { BusinessDocument } from '../models'
 import { securityAudit } from '../security-audit'
 
@@ -25,9 +25,6 @@ export class BusinessService {
       if (existingBusiness) {
         return { success: false, error: 'Business with this name already exists' }
       }
-
-      // Generate business ID
-      const businessId = generateDocId('business', `${businessData.ownerId}-${businessData.name.toLowerCase().replace(/\s+/g, '-')}`)
 
       // Create business document
       const businessDoc: Omit<BusinessDocument, '_id' | '_rev' | 'createdAt' | 'updatedAt'> = {
@@ -82,17 +79,17 @@ export class BusinessService {
       }
 
       const response = await couchdb.createDocument(this.dbName, businessDoc)
-      
+
       if (response.ok) {
         // Log business creation
         securityAudit.logEvent(
           'business_creation',
           'low',
           'Business profile created',
-          { 
-            businessName: businessData.name, 
+          {
+            businessName: businessData.name,
             category: businessData.category,
-            county: businessData.county 
+            county: businessData.county
           },
           businessData.ownerId
         )
@@ -169,7 +166,7 @@ export class BusinessService {
     skip?: number
   }): Promise<{ businesses: BusinessDocument[]; total: number }> {
     try {
-      const selector: any = {
+      const selector: Record<string, unknown> = {
         type: 'business',
         isDeleted: false
       }
@@ -255,7 +252,7 @@ export class BusinessService {
       }
 
       const response = await couchdb.updateDocument(this.dbName, updatedBusiness)
-      
+
       if (response.ok) {
         securityAudit.logEvent(
           'business_update',
@@ -330,7 +327,7 @@ export class BusinessService {
       }
 
       const response = await couchdb.updateDocument(this.dbName, updatedBusiness)
-      
+
       if (response.ok) {
         securityAudit.logEvent(
           'business_verification',
@@ -370,7 +367,7 @@ export class BusinessService {
       }
 
       const response = await couchdb.updateDocument(this.dbName, deletedBusiness)
-      
+
       if (response.ok) {
         securityAudit.logEvent(
           'business_deletion',
@@ -395,7 +392,7 @@ export class BusinessService {
     limit: number = 20
   ): Promise<BusinessDocument[]> {
     try {
-      const selector: any = {
+      const selector: Record<string, unknown> = {
         type: 'business',
         category,
         status: 'active',
@@ -439,15 +436,15 @@ export class BusinessService {
   ): number {
     const [lon1, lat1] = coord1
     const [lon2, lat2] = coord2
-    
+
     const R = 6371 // Earth's radius in kilometers
     const dLat = this.toRadians(lat2 - lat1)
     const dLon = this.toRadians(lon2 - lon1)
-    
+
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
               Math.cos(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) *
               Math.sin(dLon / 2) * Math.sin(dLon / 2)
-    
+
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     return R * c
   }

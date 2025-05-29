@@ -19,7 +19,7 @@ export function NotificationSettings() {
             Notifications Not Supported
           </CardTitle>
           <CardDescription>
-            Your browser doesn't support notifications. Try using a modern browser like Chrome, Firefox, or Edge.
+            Your browser doesn&apos;t support notifications. Try using a modern browser like Chrome, Firefox, or Edge.
           </CardDescription>
         </CardHeader>
       </Card>

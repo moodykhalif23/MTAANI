@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { Plus, Edit, Trash2, Upload, Save, Search, Filter, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -71,7 +72,7 @@ export default function DigitalMenuPage() {
     },
   ])
 
-  const [categories, setCategories] = useState(["Coffee", "Food", "Pastries", "Beverages", "Desserts"])
+  const categories = ["Coffee", "Food", "Pastries", "Beverages", "Desserts"]
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
   const [isAddingItem, setIsAddingItem] = useState(false)
@@ -252,10 +253,11 @@ export default function DigitalMenuPage() {
                 <Card key={item.id} className="shadow-lg border-0 bg-white/80 backdrop-blur overflow-hidden">
                   <div className="aspect-video bg-gray-100 relative">
                     {item.image ? (
-                      <img
+                      <Image
                         src={item.image || "/placeholder.svg"}
                         alt={item.name}
-                        className="object-cover w-full h-full"
+                        fill
+                        className="object-cover"
                       />
                     ) : (
                       <div className="flex items-center justify-center h-full text-gray-400">

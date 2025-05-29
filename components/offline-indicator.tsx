@@ -15,7 +15,7 @@ export function OfflineIndicator() {
         <Alert className="bg-orange-50 border-orange-200 text-orange-800">
           <WifiOff className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
-            <span>You're offline. Showing cached content.</span>
+            <span>You&apos;re offline. Showing cached content.</span>
           </AlertDescription>
         </Alert>
       ) : wasOffline ? (

@@ -1,4 +1,4 @@
-import { couchdb, generateDocId } from '../couchdb'
+import { couchdb } from '../couchdb'
 import { UserDocument } from '../models'
 import { hashPassword, verifyPassword } from '../password'
 import { securityAudit } from '../security-audit'
@@ -24,9 +24,6 @@ export class UserService {
 
       // Hash password
       const passwordHash = await hashPassword(userData.password)
-
-      // Generate user ID
-      const userId = generateDocId('user', userData.email)
 
       // Create user document
       const userDoc: Omit<UserDocument, '_id' | '_rev' | 'createdAt' | 'updatedAt'> = {
@@ -62,7 +59,7 @@ export class UserService {
       }
 
       const response = await couchdb.createDocument(this.dbName, userDoc)
-      
+
       if (response.ok) {
         // Log user creation
         securityAudit.logEvent(
@@ -116,14 +113,14 @@ export class UserService {
 
   // Authenticate user
   async authenticateUser(
-    email: string, 
+    email: string,
     password: string,
     ipAddress: string,
     userAgent: string
   ): Promise<{ success: boolean; user?: UserDocument; error?: string }> {
     try {
       const user = await this.findUserByEmail(email)
-      
+
       if (!user) {
         securityAudit.logEvent(
           'login',
@@ -153,11 +150,11 @@ export class UserService {
 
       // Verify password
       const isPasswordValid = await verifyPassword(password, user.passwordHash)
-      
+
       if (!isPasswordValid) {
         // Increment login attempts
         await this.incrementLoginAttempts(user)
-        
+
         securityAudit.logEvent(
           'login',
           'medium',
@@ -167,7 +164,7 @@ export class UserService {
           ipAddress,
           userAgent
         )
-        
+
         return { success: false, error: 'Invalid email or password' }
       }
 
@@ -193,7 +190,7 @@ export class UserService {
 
   // Update user
   async updateUser(
-    userId: string, 
+    userId: string,
     updates: Partial<UserDocument>,
     updatedBy?: string
   ): Promise<{ success: boolean; error?: string }> {
@@ -220,7 +217,7 @@ export class UserService {
 
   // Soft delete user
   async deleteUser(
-    userId: string, 
+    userId: string,
     deletedBy: string,
     reason?: string
   ): Promise<{ success: boolean; error?: string }> {
@@ -239,7 +236,7 @@ export class UserService {
       }
 
       const response = await couchdb.updateDocument(this.dbName, deletedUser)
-      
+
       if (response.ok) {
         securityAudit.logEvent(
           'user_deletion',
@@ -259,7 +256,7 @@ export class UserService {
 
   // Verify email
   async verifyEmail(
-    userId: string, 
+    userId: string,
     token: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
@@ -333,7 +330,7 @@ export class UserService {
       }
 
       const response = await couchdb.updateDocument(this.dbName, updatedUser)
-      
+
       if (response.ok) {
         securityAudit.logEvent(
           'password_change',
@@ -356,7 +353,7 @@ export class UserService {
     try {
       const attempts = user.loginAttempts + 1
       const shouldLock = attempts >= 5 // Lock after 5 failed attempts
-      
+
       const updatedUser: UserDocument = {
         ...user,
         loginAttempts: attempts,
@@ -371,8 +368,8 @@ export class UserService {
   }
 
   private async resetLoginAttempts(
-    user: UserDocument, 
-    ipAddress: string, 
+    user: UserDocument,
+    ipAddress: string,
     userAgent: string
   ): Promise<void> {
     try {

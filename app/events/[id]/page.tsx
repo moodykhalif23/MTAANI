@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { ArrowLeft, MapPin, Calendar, Clock, Users, Share2, Heart, Ticket, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -74,7 +75,7 @@ const eventReviews = [
   },
 ]
 
-export default function EventDetailPage({ params }: { params: { id: string } }) {
+export default function EventDetailPage({ }: { params: { id: string } }) {
   const [isRegistered, setIsRegistered] = useState(false)
   const [isFavorited, setIsFavorited] = useState(false)
 
@@ -115,10 +116,11 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           <div className="lg:col-span-2">
             <div className="aspect-video relative overflow-hidden rounded-lg mb-4">
-              <img
+              <Image
                 src={eventData.image || "/placeholder.svg"}
                 alt={eventData.title}
-                className="object-cover w-full h-full"
+                fill
+                className="object-cover"
               />
               <div className="absolute top-4 left-4">
                 <Badge className="bg-primary text-primary-foreground">{eventData.category}</Badge>
@@ -244,11 +246,12 @@ export default function EventDetailPage({ params }: { params: { id: string } }) 
                   <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {eventData.images.map((image, index) => (
-                        <div key={index} className="aspect-video overflow-hidden rounded border">
-                          <img
+                        <div key={index} className="aspect-video overflow-hidden rounded border relative">
+                          <Image
                             src={image || "/placeholder.svg"}
                             alt={`Event photo ${index + 1}`}
-                            className="object-cover w-full h-full"
+                            fill
+                            className="object-cover"
                           />
                         </div>
                       ))}

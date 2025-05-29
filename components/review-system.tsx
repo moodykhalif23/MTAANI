@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Star, ThumbsUp, ThumbsDown, Flag, User } from "lucide-react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -40,7 +41,7 @@ interface ReviewSystemProps {
   totalReviews: number
 }
 
-export function ReviewSystem({ businessId, eventId, reviews, averageRating, totalReviews }: ReviewSystemProps) {
+export function ReviewSystem({ reviews, averageRating, totalReviews }: ReviewSystemProps) {
   const [newReview, setNewReview] = useState({
     rating: 0,
     comment: "",
@@ -182,10 +183,12 @@ export function ReviewSystem({ businessId, eventId, reviews, averageRating, tota
                   {review.images && review.images.length > 0 && (
                     <div className="flex gap-2 mb-3">
                       {review.images.map((image, index) => (
-                        <img
+                        <Image
                           key={index}
                           src={image || "/placeholder.svg"}
                           alt={`Review image ${index + 1}`}
+                          width={64}
+                          height={64}
                           className="w-16 h-16 object-cover rounded border"
                         />
                       ))}

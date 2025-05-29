@@ -20,7 +20,7 @@ export async function GET(
 
     // Find business
     const business = await businessService.findBusinessById(businessId)
-    
+
     if (!business) {
       return NextResponse.json(
         { error: 'Business not found' },
@@ -32,8 +32,8 @@ export async function GET(
     await businessService.updateBusinessStats(businessId, 'views')
 
     // Log business view for analytics
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
+    const clientIP = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
                      'unknown'
 
     securityAudit.logEvent(
@@ -74,9 +74,9 @@ export async function GET(
   } catch (error) {
     console.error('Get business error:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to get business' 
+      {
+        success: false,
+        error: 'Failed to get business'
       },
       { status: 500 }
     )
@@ -91,16 +91,10 @@ export async function PUT(
   try {
     const businessId = params.id
 
-    // Get client information
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown'
-    const userAgent = request.headers.get('user-agent') || 'unknown'
-
     // Verify authentication
     const authHeader = request.headers.get('authorization')
     const accessToken = extractTokenFromHeader(authHeader)
-    
+
     if (!accessToken) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -120,7 +114,7 @@ export async function PUT(
 
     // Find business
     const business = await businessService.findBusinessById(businessId)
-    
+
     if (!business) {
       return NextResponse.json(
         { error: 'Business not found' },
@@ -191,9 +185,9 @@ export async function PUT(
   } catch (error) {
     console.error('Business update error:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to update business' 
+      {
+        success: false,
+        error: 'Failed to update business'
       },
       { status: 500 }
     )
@@ -208,16 +202,10 @@ export async function DELETE(
   try {
     const businessId = params.id
 
-    // Get client information
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown'
-    const userAgent = request.headers.get('user-agent') || 'unknown'
-
     // Verify authentication
     const authHeader = request.headers.get('authorization')
     const accessToken = extractTokenFromHeader(authHeader)
-    
+
     if (!accessToken) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -237,7 +225,7 @@ export async function DELETE(
 
     // Find business
     const business = await businessService.findBusinessById(businessId)
-    
+
     if (!business) {
       return NextResponse.json(
         { error: 'Business not found' },
@@ -275,9 +263,9 @@ export async function DELETE(
   } catch (error) {
     console.error('Business deletion error:', error)
     return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to delete business' 
+      {
+        success: false,
+        error: 'Failed to delete business'
       },
       { status: 500 }
     )

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { ArrowLeft, Upload, Calendar, Clock, MapPin, Users, DollarSign, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -406,8 +407,8 @@ export default function SubmitEventPage() {
                               onCheckedChange={(checked) =>
                                 setFormData((prev) => ({
                                   ...prev,
-                                  isFree: checked,
-                                  ticketPrice: checked ? "" : prev.ticketPrice,
+                                  isFree: checked === true,
+                                  ticketPrice: checked === true ? "" : prev.ticketPrice,
                                 }))
                               }
                               className="border-gray-300"
@@ -539,11 +540,12 @@ export default function SubmitEventPage() {
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                               {uploadedImages.map((file, index) => (
                                 <div key={index} className="relative">
-                                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                                    <img
+                                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden relative">
+                                    <Image
                                       src={URL.createObjectURL(file)}
                                       alt={`Upload ${index + 1}`}
-                                      className="w-full h-full object-cover"
+                                      fill
+                                      className="object-cover"
                                     />
                                   </div>
                                   <button
@@ -624,7 +626,7 @@ export default function SubmitEventPage() {
                 {submitSuccess && (
                   <Alert className="border-green-200 bg-green-50">
                     <AlertDescription className="text-green-800">
-                      🎉 Event submitted successfully! Your event will be reviewed and published within 24-48 hours. You'll receive a confirmation email shortly.
+                      🎉 Event submitted successfully! Your event will be reviewed and published within 24-48 hours. You&apos;ll receive a confirmation email shortly.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -632,7 +634,7 @@ export default function SubmitEventPage() {
                 {!submitSuccess && (
                   <Alert className="border-purple-200 bg-purple-50">
                     <AlertDescription className="text-purple-800">
-                      Your event will be reviewed and published within 24 hours. You'll receive a confirmation email.
+                      Your event will be reviewed and published within 24 hours. You&apos;ll receive a confirmation email.
                     </AlertDescription>
                   </Alert>
                 )}

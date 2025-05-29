@@ -1,5 +1,3 @@
-import { securityConfig } from './security-config'
-
 // CouchDB Configuration
 export interface CouchDBConfig {
   host: string
@@ -41,8 +39,8 @@ export interface CouchDBViewResponse<T> {
   offset: number
   rows: Array<{
     id: string
-    key: any
-    value: any
+    key: unknown
+    value: unknown
     doc?: T
   }>
 }
@@ -69,13 +67,13 @@ export class CouchDBClient {
 
   // Generic HTTP request method
   private async request<T>(
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD',
     path: string,
-    body?: any,
+    body?: unknown,
     headers: Record<string, string> = {}
   ): Promise<T> {
     const url = `${this.baseUrl}${path}`
-    
+
     const requestHeaders = {
       'Authorization': this.authHeader,
       'Content-Type': 'application/json',
@@ -94,20 +92,25 @@ export class CouchDBClient {
     }
 
     let lastError: Error | null = null
-    
+
     for (let attempt = 0; attempt <= this.config.maxRetries; attempt++) {
       try {
         const response = await fetch(url, requestOptions)
-        
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
           throw new Error(`CouchDB Error: ${response.status} - ${errorData.reason || response.statusText}`)
         }
 
+        // HEAD requests don't return a body
+        if (method === 'HEAD') {
+          return undefined as T
+        }
+
         return await response.json()
       } catch (error) {
         lastError = error as Error
-        
+
         if (attempt < this.config.maxRetries) {
           // Exponential backoff
           const delay = Math.pow(2, attempt) * 1000
@@ -130,7 +133,7 @@ export class CouchDBClient {
 
   async databaseExists(dbName: string): Promise<boolean> {
     try {
-      await this.request('HEAD', `/${dbName}`)
+      await this.request<void>('HEAD', `/${dbName}`)
       return true
     } catch {
       return false
@@ -139,7 +142,7 @@ export class CouchDBClient {
 
   // Document operations
   async getDocument<T extends CouchDBDocument>(
-    dbName: string, 
+    dbName: string,
     docId: string,
     rev?: string
   ): Promise<T> {
@@ -166,12 +169,12 @@ export class CouchDBClient {
     if (!doc._id || !doc._rev) {
       throw new Error('Document must have _id and _rev for updates')
     }
-    
+
     const docWithTimestamp = {
       ...doc,
       updatedAt: new Date().toISOString()
     }
-    
+
     return this.request('PUT', `/${dbName}/${doc._id}`, docWithTimestamp)
   }
 
@@ -205,10 +208,10 @@ export class CouchDBClient {
     designDoc: string,
     viewName: string,
     options: {
-      key?: any
-      keys?: any[]
-      startkey?: any
-      endkey?: any
+      key?: unknown
+      keys?: unknown[]
+      startkey?: unknown
+      endkey?: unknown
       limit?: number
       skip?: number
       descending?: boolean
@@ -218,7 +221,7 @@ export class CouchDBClient {
     } = {}
   ): Promise<CouchDBViewResponse<T>> {
     const queryParams = new URLSearchParams()
-    
+
     Object.entries(options).forEach(([key, value]) => {
       if (value !== undefined) {
         if (typeof value === 'object') {
@@ -236,7 +239,7 @@ export class CouchDBClient {
   // Find operations (Mango queries)
   async find<T>(
     dbName: string,
-    selector: any,
+    selector: Record<string, unknown>,
     options: {
       fields?: string[]
       sort?: Array<{ [key: string]: 'asc' | 'desc' }>
@@ -244,7 +247,7 @@ export class CouchDBClient {
       skip?: number
       use_index?: string
     } = {}
-  ): Promise<{ docs: T[]; warning?: string; execution_stats?: any }> {
+  ): Promise<{ docs: T[]; warning?: string; execution_stats?: Record<string, unknown> }> {
     return this.request('POST', `/${dbName}/_find`, {
       selector,
       ...options
@@ -287,7 +290,7 @@ export class CouchDBClient {
       filter?: string
       doc_ids?: string[]
     } = {}
-  ): Promise<any> {
+  ): Promise<Record<string, unknown>> {
     return this.request('POST', '/_replicate', {
       source,
       target,

@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useSubscription } from "@/hooks/use-subscription"
-import { SUBSCRIPTION_PLANS } from "@/lib/subscription-types"
 import Link from "next/link"
 
 interface SubscriptionManagerProps {
@@ -154,7 +153,7 @@ export function SubscriptionManager({ showUpgradePrompts = true, compact = false
             <Alert className="border-blue-200 bg-blue-50">
               <AlertTriangle className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800">
-                Your trial expires in {trialDaysLeft} days. 
+                Your trial expires in {trialDaysLeft} days.
                 <Link href="/pricing" className="ml-1 underline font-medium">
                   Upgrade now to continue using premium features.
                 </Link>
@@ -168,8 +167,8 @@ export function SubscriptionManager({ showUpgradePrompts = true, compact = false
               <XCircle className="h-4 w-4 text-red-600" />
               <AlertDescription className="text-red-800">
                 Your subscription will end on {subscription.currentPeriodEnd.toLocaleDateString()}.
-                <Button 
-                  variant="link" 
+                <Button
+                  variant="link"
                   className="ml-1 p-0 h-auto text-red-800 underline"
                   onClick={handleReactivateSubscription}
                   disabled={isProcessing}
@@ -206,20 +205,20 @@ export function SubscriptionManager({ showUpgradePrompts = true, compact = false
                     <span>Business Photos</span>
                     <span>
                       {businessProfile.usage.photosUsed} / {
-                        planDetails.features.businessPhotos === "unlimited" 
-                          ? "∞" 
+                        planDetails.features.businessPhotos === "unlimited"
+                          ? "∞"
                           : planDetails.features.businessPhotos
                       }
                     </span>
                   </div>
                   {typeof planDetails.features.businessPhotos === "number" && (
-                    <Progress 
-                      value={(businessProfile.usage.photosUsed / planDetails.features.businessPhotos) * 100} 
+                    <Progress
+                      value={(businessProfile.usage.photosUsed / planDetails.features.businessPhotos) * 100}
                       className="h-2"
                     />
                   )}
                 </div>
-                
+
                 {planDetails.features.digitalMenu && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
@@ -240,10 +239,10 @@ export function SubscriptionManager({ showUpgradePrompts = true, compact = false
                 Change Plan
               </Link>
             </Button>
-            
+
             {currentPlan !== "starter" && !subscription.cancelAtPeriodEnd && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleCancelSubscription}
                 disabled={isProcessing}
               >
@@ -251,7 +250,7 @@ export function SubscriptionManager({ showUpgradePrompts = true, compact = false
                 Cancel Subscription
               </Button>
             )}
-            
+
             <Button variant="outline" asChild>
               <Link href="/business/dashboard">
                 <Calendar className="h-4 w-4 mr-2" />

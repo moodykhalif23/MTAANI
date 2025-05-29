@@ -18,7 +18,7 @@ interface AlertPayload {
   severity: 'low' | 'medium' | 'high' | 'critical'
   title: string
   description: string
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
   source: 'subscription_security' | 'payment_fraud' | 'system_health'
   actionRequired: boolean
   affectedUsers?: string[]
@@ -62,7 +62,7 @@ export class AlertSystem {
 
       // Add to queue
       this.alertQueue.push(payload)
-      
+
       // Process queue if not already processing
       if (!this.isProcessing) {
         await this.processAlertQueue()
@@ -80,7 +80,7 @@ export class AlertSystem {
     eventType: string,
     severity: 'low' | 'medium' | 'high' | 'critical',
     description: string,
-    metadata: Record<string, any> = {},
+    metadata: Record<string, unknown> = {},
     userId?: string,
     ipAddress?: string
   ): Promise<void> {
@@ -110,7 +110,7 @@ export class AlertSystem {
     title: string,
     description: string,
     severity: 'low' | 'medium' | 'high' | 'critical',
-    metadata: Record<string, any> = {}
+    metadata: Record<string, unknown> = {}
   ): Promise<void> {
     const alert: AlertPayload = {
       id: `system_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
@@ -138,7 +138,7 @@ export class AlertSystem {
       while (this.alertQueue.length > 0) {
         const alert = this.alertQueue.shift()!
         await this.deliverAlert(alert)
-        
+
         // Small delay to prevent overwhelming external services
         await new Promise(resolve => setTimeout(resolve, 100))
       }

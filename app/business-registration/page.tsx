@@ -655,7 +655,7 @@ export default function BusinessRegistrationPage() {
 
                     <Alert className="border-blue-200 bg-blue-50">
                       <AlertDescription className="text-blue-800">
-                        Your business will be reviewed within 24-48 hours. You'll receive email confirmation once
+                        Your business will be reviewed within 24-48 hours. You&apos;ll receive email confirmation once
                         approved. All information is kept secure and used only for verification purposes.
                       </AlertDescription>
                     </Alert>

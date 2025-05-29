@@ -57,7 +57,7 @@ class OfflineCache {
     })
   }
 
-  async cacheBusinesses(businesses: any[], userLocation?: { lat: number; lng: number }): Promise<void> {
+  async cacheBusinesses(businesses: Array<Record<string, unknown>>, userLocation?: { lat: number; lng: number }): Promise<void> {
     if (!this.db) await this.init()
 
     const transaction = this.db!.transaction(["businesses"], "readwrite")
@@ -76,7 +76,7 @@ class OfflineCache {
     }
   }
 
-  async cacheEvents(events: any[], userLocation?: { lat: number; lng: number }): Promise<void> {
+  async cacheEvents(events: Array<Record<string, unknown>>, userLocation?: { lat: number; lng: number }): Promise<void> {
     if (!this.db) await this.init()
 
     const transaction = this.db!.transaction(["events"], "readwrite")
@@ -95,7 +95,7 @@ class OfflineCache {
     }
   }
 
-  async getCachedBusinesses(userLocation?: { lat: number; lng: number }): Promise<any[]> {
+  async getCachedBusinesses(userLocation?: { lat: number; lng: number }): Promise<Array<Record<string, unknown>>> {
     if (!this.db) await this.init()
 
     const transaction = this.db!.transaction(["businesses"], "readonly")
@@ -124,7 +124,7 @@ class OfflineCache {
     })
   }
 
-  async getCachedEvents(userLocation?: { lat: number; lng: number }): Promise<any[]> {
+  async getCachedEvents(userLocation?: { lat: number; lng: number }): Promise<Array<Record<string, unknown>>> {
     if (!this.db) await this.init()
 
     const transaction = this.db!.transaction(["events"], "readonly")
@@ -189,7 +189,7 @@ class OfflineCache {
     })
   }
 
-  async cacheSearchResults(query: string, results: any[], userLocation?: { lat: number; lng: number }): Promise<void> {
+  async cacheSearchResults(query: string, results: Array<Record<string, unknown>>, userLocation?: { lat: number; lng: number }): Promise<void> {
     if (!this.db) await this.init()
 
     const transaction = this.db!.transaction(["search_cache"], "readwrite")
@@ -209,7 +209,7 @@ class OfflineCache {
     await store.put(searchData)
   }
 
-  async getCachedSearchResults(query: string, userLocation?: { lat: number; lng: number }): Promise<any[] | null> {
+  async getCachedSearchResults(query: string, userLocation?: { lat: number; lng: number }): Promise<Array<Record<string, unknown>> | null> {
     if (!this.db) await this.init()
 
     const transaction = this.db!.transaction(["search_cache"], "readonly")

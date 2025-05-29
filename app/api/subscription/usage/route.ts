@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { SubscriptionPlan, getPhotoLimit, SUBSCRIPTION_PLANS } from '@/lib/subscription-types'
+import { SubscriptionPlan } from '@/lib/subscription-types'
 
 interface UsageData {
   userId: string
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update usage
-    usage[`${feature}Used` as keyof UsageData] = newUsage as any
+    (usage as Record<string, unknown>)[`${feature}Used`] = newUsage
     usage.lastUpdated = new Date().toISOString()
     usageStorage[userId] = usage
 

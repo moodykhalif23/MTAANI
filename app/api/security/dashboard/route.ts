@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper functions
-function getTopIPs(events: any[]): Array<{ ip: string; count: number; severity: string }> {
+function getTopIPs(events: SecurityEvent[]): Array<{ ip: string; count: number; severity: string }> {
   const ipCounts = events.reduce((acc, event) => {
     if (event.ipAddress) {
       if (!acc[event.ipAddress]) {
@@ -175,7 +175,7 @@ function getTopIPs(events: any[]): Array<{ ip: string; count: number; severity: 
     .slice(0, 10)
 }
 
-function getTopUsers(events: any[]): Array<{ userId: string; count: number; severity: string }> {
+function getTopUsers(events: SecurityEvent[]): Array<{ userId: string; count: number; severity: string }> {
   const userCounts = events.reduce((acc, event) => {
     if (event.userId) {
       if (!acc[event.userId]) {
@@ -197,7 +197,7 @@ function getTopUsers(events: any[]): Array<{ userId: string; count: number; seve
     .slice(0, 10)
 }
 
-function getTimelineData(events: any[], timeframe: string): Array<{ timestamp: string; count: number; critical: number }> {
+function getTimelineData(events: SecurityEvent[], timeframe: string): Array<{ timestamp: string; count: number; critical: number }> {
   const bucketSize = timeframe === '1h' ? 5 * 60 * 1000 : // 5 minutes
                      timeframe === '24h' ? 60 * 60 * 1000 : // 1 hour
                      timeframe === '7d' ? 6 * 60 * 60 * 1000 : // 6 hours
@@ -222,7 +222,7 @@ function getTimelineData(events: any[], timeframe: string): Array<{ timestamp: s
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
 }
 
-function calculateThreatLevel(events: any[], securityStatus: any): 'low' | 'medium' | 'high' | 'critical' {
+function calculateThreatLevel(events: SecurityEvent[], securityStatus: { blockedIPs: string[] }): 'low' | 'medium' | 'high' | 'critical' {
   const criticalEvents = events.filter(e => e.severity === 'critical').length
   const bypassAttempts = events.filter(e => e.eventType === 'feature_bypass_attempt').length
   const blockedIPs = securityStatus.blockedIPs.length
@@ -233,7 +233,7 @@ function calculateThreatLevel(events: any[], securityStatus: any): 'low' | 'medi
   return 'low'
 }
 
-function generateSecurityRecommendations(analytics: any, activeThreats: any): string[] {
+function generateSecurityRecommendations(analytics: { eventsByType: Record<string, number>; eventsBySeverity: Record<string, number> }, activeThreats: { blockedIPs: number; suspiciousUsers: number }): string[] {
   const recommendations: string[] = []
 
   if (activeThreats.blockedIPs > 5) {

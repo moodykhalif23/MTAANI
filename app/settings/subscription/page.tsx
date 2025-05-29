@@ -1,12 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { CreditCard, Download, Calendar, AlertTriangle, CheckCircle, Settings } from "lucide-react"
+import { CreditCard, Download, Calendar, Settings, Clock, AlertTriangle, XCircle, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+
 import { AuthHeader } from "@/components/auth-header"
 import { Footer } from "@/components/footer"
 import { SubscriptionManager } from "@/components/subscription-manager"
@@ -15,29 +15,34 @@ import Link from "next/link"
 
 export default function SubscriptionSettingsPage() {
   const {
-    subscription,
     businessProfile,
     isLoading,
-    currentPlan,
     planDetails,
+    subscription,
+    currentPlan,
     isOnTrial,
     trialDaysLeft,
-    upgradePlan,
     cancelSubscription,
-    reactivateSubscription
+    reactivateSubscription,
   } = useSubscription()
 
-  const [isUpgrading, setIsUpgrading] = useState(false)
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
+  const [isProcessingSubscription, setIsProcessingSubscription] = useState(false)
 
-  const handleUpgrade = async (plan: string) => {
-    setIsUpgrading(true)
-    setSelectedPlan(plan)
+  const handleCancelSubscription = async () => {
+    setIsProcessingSubscription(true)
     try {
-      await upgradePlan(plan as any)
+      await cancelSubscription()
     } finally {
-      setIsUpgrading(false)
-      setSelectedPlan(null)
+      setIsProcessingSubscription(false)
+    }
+  }
+
+  const handleReactivateSubscription = async () => {
+    setIsProcessingSubscription(true)
+    try {
+      await reactivateSubscription()
+    } finally {
+      setIsProcessingSubscription(false)
     }
   }
 
@@ -59,14 +64,39 @@ export default function SubscriptionSettingsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <AuthHeader />
-      
+
       {/* Header */}
       <div className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-[#0A558C]">Subscription Settings</h1>
-              <p className="text-gray-600 mt-2">Manage your subscription, billing, and plan features</p>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-3xl font-bold text-[#0A558C]">Subscription Settings</h1>
+                {subscription && (
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={subscription.status === "active" ? "default" :
+                               subscription.status === "trialing" ? "secondary" : "destructive"}
+                      className="text-xs"
+                    >
+                      {subscription.status.toUpperCase()}
+                    </Badge>
+                    {subscription.cancelAtPeriodEnd && (
+                      <Badge variant="destructive" className="text-xs">
+                        <XCircle className="h-3 w-3 mr-1" />
+                        CANCELLING
+                      </Badge>
+                    )}
+                    {isOnTrial && (
+                      <Badge variant="outline" className="text-xs border-orange-300 text-orange-700">
+                        <Clock className="h-3 w-3 mr-1" />
+                        TRIAL
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+              <p className="text-gray-600">Manage your subscription, billing, and plan features</p>
             </div>
             <Link href="/pricing">
               <Button>
@@ -79,11 +109,99 @@ export default function SubscriptionSettingsPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Trial Status Alert */}
+        {isOnTrial && trialDaysLeft > 0 && (
+          <Alert className="mb-6 border-orange-200 bg-orange-50">
+            <Clock className="h-4 w-4" />
+            <AlertTitle className="text-orange-800">Trial Active - {trialDaysLeft} Days Remaining</AlertTitle>
+            <AlertDescription className="text-orange-700">
+              You have {trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''} left in your {currentPlan} trial.
+              <Link href="/pricing" className="font-medium underline ml-1">
+                Upgrade now
+              </Link> to continue using premium features after your trial ends.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Current Subscription */}
             <SubscriptionManager showUpgradePrompts={false} />
+
+            {/* Subscription Management */}
+            {subscription && currentPlan !== "starter" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Subscription Management
+                  </CardTitle>
+                  <CardDescription>
+                    Manage your subscription status and billing
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {subscription.cancelAtPeriodEnd ? (
+                    <div className="space-y-4">
+                      <Alert className="border-orange-200 bg-orange-50">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle className="text-orange-800">Subscription Cancelling</AlertTitle>
+                        <AlertDescription className="text-orange-700">
+                          Your subscription will end on {subscription.currentPeriodEnd.toLocaleDateString()}.
+                          You&apos;ll lose access to premium features after this date.
+                        </AlertDescription>
+                      </Alert>
+                      <Button
+                        onClick={handleReactivateSubscription}
+                        disabled={isProcessingSubscription}
+                        className="w-full"
+                      >
+                        {isProcessingSubscription ? (
+                          <>
+                            <RotateCcw className="h-4 w-4 mr-2 animate-spin" />
+                            Reactivating...
+                          </>
+                        ) : (
+                          <>
+                            <RotateCcw className="h-4 w-4 mr-2" />
+                            Reactivate Subscription
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="p-4 border rounded-lg bg-gray-50">
+                        <h4 className="font-medium text-gray-900 mb-2">Cancel Subscription</h4>
+                        <p className="text-sm text-gray-600 mb-3">
+                          You can cancel your subscription at any time. You&apos;ll continue to have access
+                          to premium features until the end of your current billing period.
+                        </p>
+                        <Button
+                          variant="destructive"
+                          onClick={handleCancelSubscription}
+                          disabled={isProcessingSubscription}
+                          className="w-full"
+                        >
+                          {isProcessingSubscription ? (
+                            <>
+                              <XCircle className="h-4 w-4 mr-2 animate-spin" />
+                              Cancelling...
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="h-4 w-4 mr-2" />
+                              Cancel Subscription
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Billing History */}
             <Card>
@@ -198,20 +316,20 @@ export default function SubscriptionSettingsPage() {
                     <span className="text-sm">Business Photos</span>
                     <span className="text-sm font-medium">
                       {businessProfile.usage.photosUsed} / {
-                        planDetails.features.businessPhotos === "unlimited" 
-                          ? "∞" 
+                        planDetails.features.businessPhotos === "unlimited"
+                          ? "∞"
                           : planDetails.features.businessPhotos
                       }
                     </span>
                   </div>
-                  
+
                   {planDetails.features.digitalMenu && (
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Menu Items</span>
                       <span className="text-sm font-medium">{businessProfile.usage.menuItemsCount}</span>
                     </div>
                   )}
-                  
+
                   {planDetails.features.appointmentBooking && (
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Appointments</span>

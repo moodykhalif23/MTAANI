@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
+import Image from "next/image"
 import { Search, MapPin, Filter, Star, Clock, Phone, Navigation } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,17 +20,35 @@ import { AuthHeader } from "@/components/auth-header"
 import { Footer } from "@/components/footer"
 import Link from "next/link"
 
+interface Business {
+  id: number
+  name: string
+  category: string
+  rating: number
+  reviews: number
+  image: string
+  location: string
+  phone: string
+  website: string
+  hours: string
+  description: string
+  tags: string[]
+  distance: string
+  priceRange: string
+  calculatedDistance?: number | null
+}
+
 export default function BusinessesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [sortBy, setSortBy] = useState("rating")
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
-  const [businesses, setBusinesses] = useState<any[]>([])
+  const [businesses, setBusinesses] = useState<Business[]>([])
   const [loading, setLoading] = useState(true)
   const [fromCache, setFromCache] = useState(false)
   const { isOnline } = useOffline()
 
-  const mockBusinesses = [
+  const mockBusinesses = useMemo(() => [
     {
       id: 1,
       name: "The Coffee Corner",
@@ -127,19 +146,19 @@ export default function BusinessesPage() {
       distance: "0.4 miles",
       priceRange: "$",
     },
-  ]
+  ], [])
 
   // Load businesses data (online or cached)
   useEffect(() => {
     loadBusinesses()
-  }, [isOnline, userLocation, selectedCategory])
+  }, [loadBusinesses])
 
   // Load cached user location on mount
   useEffect(() => {
     loadCachedLocation()
   }, [])
 
-  const loadBusinesses = async () => {
+  const loadBusinesses = useCallback(async () => {
     try {
       setLoading(true)
 
@@ -194,7 +213,7 @@ export default function BusinessesPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [isOnline, userLocation, selectedCategory, mockBusinesses])
 
   const loadCachedLocation = async () => {
     try {
@@ -452,10 +471,11 @@ export default function BusinessesPage() {
                 className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg bg-white/80 backdrop-blur"
               >
                 <div className="aspect-video relative overflow-hidden">
-                  <img
+                  <Image
                     src={business.image || "/placeholder.svg"}
                     alt={business.name}
-                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute top-4 left-4 flex gap-2">
