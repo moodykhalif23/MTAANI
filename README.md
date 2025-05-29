@@ -6,16 +6,16 @@ A comprehensive platform connecting local businesses with their communities acro
 
 ```bash
 # Clone and install
-git clone https://github.com/your-username/mtaani.git
+git clone https://github.com/moodykhalif23/mtaani.git
 cd mtaani
-npm install
+pnpm install
 
 # Setup environment (single .env.local file)
 cp .env.example .env.local
 # Edit .env.local with your values (JWT secrets are pre-generated)
 
 # Start development
-npm run dev
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
@@ -28,29 +28,6 @@ Open [http://localhost:3000](http://localhost:3000)
 **Payment:** M-Pesa, Stripe
 **Storage:** Local/AWS S3/Cloudinary
 
-
-
-## 📁 Project Structure
-
-```
-mtaani/
-├── app/                    # Next.js App Router
-│   ├── (auth)/            # Auth pages (login, signup)
-│   ├── admin/             # Admin dashboard
-│   ├── business/          # Business management
-│   ├── api/               # REST API endpoints
-│   └── globals.css
-├── components/            # UI components
-│   ├── ui/               # Base components (shadcn/ui)
-│   ├── auth/             # Auth components
-│   └── business/         # Business components
-├── lib/                  # Core utilities
-│   ├── couchdb.ts        # CouchDB client
-│   ├── jwt.ts            # JWT authentication
-│   ├── models/           # Document schemas
-│   └── services/         # Business logic
-└── .env.local            # Single environment file
-```
 
 ## 🔐 Authentication & Security
 
@@ -120,19 +97,19 @@ GOOGLE_MAPS_API_KEY=your_maps_key
 
 ```bash
 # Development server
-npm run dev
+pnpm dev
 
 # Build for production
-npm run build
+pnpm build
 
 # Start production server
-npm start
+pnpm start
 
 # Type checking
-npm run type-check
+pnpm run type-check
 
 # Linting
-npm run lint
+pnpm lint
 ```
 
 ## 🚀 Deployment
