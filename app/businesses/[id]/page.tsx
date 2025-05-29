@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import {
@@ -23,7 +24,6 @@ import { Footer } from "@/components/footer"
 import ReviewSystem from "@/components/review-system"
 import Link from "next/link"
 
-// Mock data - in real app, this would come from props or API
 const businessData = {
   id: 1,
   name: "The Coffee Corner",
@@ -92,7 +92,10 @@ const reviewsData = [
   },
 ]
 
-export default function BusinessDetailPage({ params }: { params: { id: string } }) {
+export default function BusinessDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  // Unwrap params using React.use()
+  const { id } = React.use(params)
+
   const [selectedImage, setSelectedImage] = useState(0)
   const [isFavorited, setIsFavorited] = useState(false)
   const [business, setBusiness] = useState(businessData) // Start with fallback data
@@ -102,7 +105,7 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
   useEffect(() => {
     const fetchBusiness = async () => {
       try {
-        const response = await fetch(`/api/businesses/${params.id}`)
+        const response = await fetch(`/api/businesses/${id}`)
 
         if (response.ok) {
           const data = await response.json()
@@ -135,7 +138,7 @@ export default function BusinessDetailPage({ params }: { params: { id: string } 
     }
 
     fetchBusiness()
-  }, [params.id])
+  }, [id])
 
   return (
     <div className="min-h-screen bg-background">
