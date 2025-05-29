@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { MapPin, Loader2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useGeolocation } from "@/hooks/use-geolocation"
@@ -30,10 +30,14 @@ export function LocationButton({ onLocationUpdate, onLocationClear, isActive }: 
     }
   }
 
-  // Update parent when location is available
-  if (isLocationAvailable && latitude && longitude && !isActive) {
-    onLocationUpdate(latitude, longitude)
-  }
+  // Update parent when location is available (useEffect instead of render)
+  useEffect(() => {
+    if (isLocationAvailable && latitude && longitude && !isActive) {
+      onLocationUpdate(latitude, longitude)
+    }
+    // Only run when these values change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLocationAvailable, latitude, longitude, isActive])
 
   // Show error if location failed
   if (error && !showError) {
