@@ -31,6 +31,300 @@ import { AuthHeader } from "@/components/auth-header"
 import { Footer } from "@/components/footer"
 import Link from "next/link"
 
+const allFeaturedBusinesses = [
+  {
+    id: 1,
+    name: "The Coffee Corner",
+    category: "Café",
+    rating: 4.8,
+    reviews: 124,
+    image: "/placeholder.svg?height=200&width=300",
+    location: "Downtown",
+    description: "Artisan coffee and fresh pastries in the heart of the city",
+    featured: true,
+    type: "business",
+  },
+  {
+    id: 2,
+    name: "Green Valley Fitness",
+    category: "Gym",
+    rating: 4.6,
+    reviews: 89,
+    image: "/placeholder.svg?height=200&width=300",
+    location: "Westside",
+    description: "Modern fitness center with personal training services",
+    featured: true,
+    type: "business",
+  },
+  {
+    id: 3,
+    name: "Bella's Italian Kitchen",
+    category: "Restaurant",
+    rating: 4.9,
+    reviews: 203,
+    image: "/placeholder.svg?height=200&width=300",
+    location: "Little Italy",
+    description: "Authentic Italian cuisine with family recipes",
+    featured: true,
+    type: "business",
+  },
+  {
+    id: 4,
+    name: "Sushi Place",
+    category: "Restaurant",
+    rating: 4.7,
+    reviews: 150,
+    image: "/placeholder.svg?height=200&width=300",
+    location: "Downtown",
+    description: "Fresh sushi and Japanese dishes",
+    featured: true,
+    type: "business",
+  },
+  {
+    id: 5,
+    name: "Pasta House",
+    category: "Restaurant",
+    rating: 4.6,
+    reviews: 90,
+    image: "/placeholder.svg?height=200&width=300",
+    location: "Little Italy",
+    description: "Homemade pasta and Italian delicacies",
+    featured: true,
+    type: "business",
+  },
+  {
+    id: 6,
+    name: "Burger Joint",
+    category: "Restaurant",
+    rating: 4.5,
+    reviews: 200,
+    image: "/placeholder.svg?height=200&width=300",
+    location: "Uptown",
+    description: "Juicy burgers and classic American diner fare",
+    featured: true,
+    type: "business",
+  },
+  {
+    id: 7,
+    name: "Taco Spot",
+    category: "Restaurant",
+    rating: 4.8,
+    reviews: 120,
+    image: "/placeholder.svg?height=200&width=300",
+    location: "Eastside",
+    description: "Delicious tacos and Mexican street food",
+    featured: true,
+    type: "business",
+  },
+  {
+    id: 8,
+    name: "Veggie Delight",
+    category: "Restaurant",
+    rating: 4.7,
+    reviews: 80,
+    image: "/placeholder.svg?height=200&width=300",
+    location: "Westside",
+    description: "Healthy vegetarian and vegan options",
+    featured: true,
+    type: "business",
+  },
+  {
+    id: 9,
+    name: "Steakhouse",
+    category: "Restaurant",
+    rating: 4.9,
+    reviews: 110,
+    image: "/placeholder.svg?height=200&width=300",
+    location: "Downtown",
+    description: "Premium steaks and fine dining experience",
+    featured: true,
+    type: "business",
+  },
+  {
+    id: 10,
+    name: "Seafood Shack",
+    category: "Restaurant",
+    rating: 4.6,
+    reviews: 95,
+    image: "/placeholder.svg?height=200&width=300",
+    location: "Harborside",
+    description: "Fresh seafood and waterfront views",
+    featured: true,
+    type: "business",
+  },
+  {
+    id: 11,
+    name: "Dessert Oasis",
+    category: "Café",
+    rating: 4.8,
+    reviews: 130,
+    image: "/placeholder.svg?height=200&width=300",
+    location: "Downtown",
+    description: "Delectable desserts and coffee",
+    featured: true,
+    type: "business",
+  },
+  {
+    id: 12,
+    name: "Bagel Bakery",
+    category: "Café",
+    rating: 4.7,
+    reviews: 70,
+    image: "/placeholder.svg?height=200&width=300",
+    location: "Midtown",
+    description: "Freshly baked bagels and spreads",
+    featured: true,
+    type: "business",
+  },
+]
+
+const allFeaturedEvents = [
+  {
+    id: 1,
+    title: "Summer Music Festival",
+    date: "July 15, 2024",
+    time: "6:00 PM",
+    location: "Central Park",
+    attendees: 245,
+    image: "/placeholder.svg?height=150&width=200",
+    featured: true,
+    type: "event",
+    price: "Free",
+  },
+  {
+    id: 2,
+    title: "Art Gallery Opening",
+    date: "July 18, 2024",
+    time: "6:00 PM",
+    location: "Downtown Gallery",
+    attendees: 34,
+    image: "/placeholder.svg?height=150&width=200",
+    featured: true,
+    type: "event",
+    price: "Free",
+  },
+  {
+    id: 3,
+    title: "Food Truck Rally",
+    date: "July 22, 2024",
+    time: "11:00 AM",
+    location: "City Hall Plaza",
+    attendees: 156,
+    image: "/placeholder.svg?height=150&width=200",
+    featured: true,
+    type: "event",
+    price: "Free Entry",
+  },
+  {
+    id: 4,
+    title: "Wine Tasting Evening",
+    date: "July 25, 2024",
+    time: "5:00 PM",
+    location: "Vineyard Estate",
+    attendees: 85,
+    image: "/placeholder.svg?height=150&width=200",
+    featured: true,
+    type: "event",
+    price: "$20",
+  },
+  {
+    id: 5,
+    title: "Charity Run",
+    date: "August 1, 2024",
+    time: "7:00 AM",
+    location: "City Sports Complex",
+    attendees: 300,
+    image: "/placeholder.svg?height=150&width=200",
+    featured: true,
+    type: "event",
+    price: "Free",
+  },
+  {
+    id: 6,
+    title: "Outdoor Movie Night",
+    date: "August 5, 2024",
+    time: "8:00 PM",
+    location: "Community Park",
+    attendees: 120,
+    image: "/placeholder.svg?height=150&width=200",
+    featured: true,
+    type: "event",
+    price: "Free",
+  },
+  {
+    id: 7,
+    title: "Food Festival",
+    date: "August 10, 2024",
+    time: "12:00 PM",
+    location: "Downtown Street",
+    attendees: 500,
+    image: "/placeholder.svg?height=150&width=200",
+    featured: true,
+    type: "event",
+    price: "Varies",
+  },
+  {
+    id: 8,
+    title: "Art in the Park",
+    date: "August 15, 2024",
+    time: "10:00 AM",
+    location: "Central Park",
+    attendees: 75,
+    image: "/placeholder.svg?height=150&width=200",
+    featured: true,
+    type: "event",
+    price: "Free",
+  },
+  {
+    id: 9,
+    title: "Live Concert",
+    date: "August 20, 2024",
+    time: "7:00 PM",
+    location: "City Arena",
+    attendees: 200,
+    image: "/placeholder.svg?height=150&width=200",
+    featured: true,
+    type: "event",
+    price: "$30",
+  },
+  {
+    id: 10,
+    title: "Theater Play: A Midsummer Night's Dream",
+    date: "August 25, 2024",
+    time: "6:00 PM",
+    location: "Downtown Theater",
+    attendees: 150,
+    image: "/placeholder.svg?height=150&width=200",
+    featured: true,
+    type: "event",
+    price: "$25",
+  },
+  {
+    id: 11,
+    title: "Photography Exhibition",
+    date: "September 1, 2024",
+    time: "5:00 PM",
+    location: "Art Gallery",
+    attendees: 60,
+    image: "/placeholder.svg?height=150&width=200",
+    featured: true,
+    type: "event",
+    price: "Free",
+  },
+  {
+    id: 12,
+    title: "Cooking Class: Italian Cuisine",
+    date: "September 5, 2024",
+    time: "3:00 PM",
+    location: "Culinary School",
+    attendees: 20,
+    image: "/placeholder.svg?height=150&width=200",
+    featured: true,
+    type: "event",
+    price: "$50",
+  },
+]
+
 export default function HomePage() {
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0)
   const [isCarouselPaused, setIsCarouselPaused] = useState(false)
@@ -53,113 +347,10 @@ export default function HomePage() {
     { name: "Arts", icon: Palette, count: "40+", color: "bg-indigo-500", description: "Creative & cultural" },
   ]
 
-  const featuredBusinesses = [
-    {
-      id: 1,
-      name: "The Coffee Corner",
-      category: "Café",
-      rating: 4.8,
-      reviews: 124,
-      image: "/placeholder.svg?height=200&width=300",
-      location: "Downtown",
-      description: "Artisan coffee and fresh pastries in the heart of the city",
-      featured: true,
-      type: "business",
-    },
-    {
-      id: 2,
-      name: "Green Valley Fitness",
-      category: "Gym",
-      rating: 4.6,
-      reviews: 89,
-      image: "/placeholder.svg?height=200&width=300",
-      location: "Westside",
-      description: "Modern fitness center with personal training services",
-      featured: true,
-      type: "business",
-    },
-    {
-      id: 3,
-      name: "Bella's Italian Kitchen",
-      category: "Restaurant",
-      rating: 4.9,
-      reviews: 203,
-      image: "/placeholder.svg?height=200&width=300",
-      location: "Little Italy",
-      description: "Authentic Italian cuisine with family recipes",
-      featured: true,
-      type: "business",
-    },
-  ]
+  const MAX_FEATURED_ITEMS = 12;
 
-  const featuredEvents = [
-    {
-      id: 1,
-      title: "Summer Music Festival",
-      date: "July 15, 2024",
-      time: "6:00 PM",
-      location: "Central Park",
-      attendees: 245,
-      image: "/placeholder.svg?height=150&width=200",
-      featured: true,
-      type: "event",
-      price: "Free",
-    },
-    {
-      id: 2,
-      title: "Art Gallery Opening",
-      date: "July 18, 2024",
-      time: "6:00 PM",
-      location: "Downtown Gallery",
-      attendees: 34,
-      image: "/placeholder.svg?height=150&width=200",
-      featured: true,
-      type: "event",
-      price: "Free",
-    },
-    {
-      id: 3,
-      title: "Food Truck Rally",
-      date: "July 22, 2024",
-      time: "11:00 AM",
-      location: "City Hall Plaza",
-      attendees: 156,
-      image: "/placeholder.svg?height=150&width=200",
-      featured: true,
-      type: "event",
-      price: "Free Entry",
-    },
-  ]
-
-  const upcomingEvents = [
-    {
-      id: 1,
-      title: "Summer Music Festival",
-      date: "July 15, 2024",
-      time: "6:00 PM",
-      location: "Central Park",
-      attendees: 245,
-      image: "/placeholder.svg?height=150&width=200",
-    },
-    {
-      id: 2,
-      title: "Local Farmers Market",
-      date: "Every Saturday",
-      time: "8:00 AM",
-      location: "Main Street",
-      attendees: 89,
-      image: "/placeholder.svg?height=150&width=200",
-    },
-    {
-      id: 3,
-      title: "Business Networking Mixer",
-      date: "July 20, 2024",
-      time: "7:00 PM",
-      location: "Chamber of Commerce",
-      attendees: 67,
-      image: "/placeholder.svg?height=150&width=200",
-    },
-  ]
+  const featuredBusinesses = allFeaturedBusinesses.slice(0, MAX_FEATURED_ITEMS);
+  const featuredEvents = allFeaturedEvents.slice(0, MAX_FEATURED_ITEMS);
 
   // Carousel auto-scroll functionality
   useEffect(() => {
@@ -581,7 +772,7 @@ export default function HomePage() {
 
             <TabsContent value="events">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {upcomingEvents.map((event) => (
+                {featuredEvents.map((event) => (
                   <Card
                     key={event.id}
                     className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg bg-white/80 backdrop-blur"
@@ -620,11 +811,14 @@ export default function HomePage() {
                           <Users className="h-4 w-4 text-gray-400" />
                           <span className="text-sm text-gray-600 font-medium">{event.attendees} attending</span>
                         </div>
+                        <div className="text-sm font-semibold text-[#0A558C]">{event.price}</div>
+                      </div>
+                      <div className="mt-4">
                         <Link href={`/events/${event.id}`}>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-blue-200 text-[#0A558C] hover:bg-blue-50 hover:border-blue-300"
+                            className="w-full border-blue-200 text-[#0A558C] hover:bg-blue-50 hover:border-blue-300"
                           >
                             Learn More
                           </Button>
