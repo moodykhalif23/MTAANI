@@ -20,10 +20,7 @@ import {
   Music,
   Palette,
   Stethoscope,
-  UserPlus,
-  BookOpen,
-  List,
-  Heart,
+
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -495,95 +492,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Business Tools Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h3 className="text-3xl font-bold mb-4 text-gray-900">Business Tools</h3>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Enhance your business with powerful tools designed to help you grow and connect with your community
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="text-center p-8 border-0 shadow-lg bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#0A558C] to-[#0A558C] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <UserPlus className="h-8 w-8 text-white" />
-              </div>
-              <h4 className="text-xl font-bold mb-3 text-gray-900">Business Dashboard</h4>
-              <p className="text-gray-600 leading-relaxed">
-                Gain insights into your business performance and manage promotions effectively
-              </p>
-              <Link href="/submit-business">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-blue-200 text-[#0A558C] hover:bg-blue-50 hover:border-blue-300 mt-4"
-                >
-                  Get Started
-                </Button>
-              </Link>
-            </Card>
-
-            <Card className="text-center p-8 border-0 shadow-lg bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300">
-              <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <BookOpen className="h-8 w-8 text-white" />
-              </div>
-              <h4 className="text-xl font-bold mb-3 text-gray-900">Appointment Booking System</h4>
-              <p className="text-gray-600 leading-relaxed">
-                Manage bookings online, integrate with calendars, and send notifications to customers
-              </p>
-              <Link href="/submit-business">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-blue-200 text-[#0A558C] hover:bg-blue-50 hover:border-blue-300 mt-4"
-                >
-                  Get Started
-                </Button>
-              </Link>
-            </Card>
-
-            <Card className="text-center p-8 border-0 shadow-lg bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <List className="h-8 w-8 text-white" />
-              </div>
-              <h4 className="text-xl font-bold mb-3 text-gray-900">Digital Menu/Catalog Management</h4>
-              <p className="text-gray-600 leading-relaxed">
-                Easily manage your menu or catalog, update prices in real-time, and showcase your products online
-              </p>
-              <Link href="/pricing">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-blue-200 text-[#0A558C] hover:bg-blue-50 hover:border-blue-300 mt-4"
-                >
-                  View Plans
-                </Button>
-              </Link>
-            </Card>
-
-            <Card className="text-center p-8 border-0 shadow-lg bg-white/80 backdrop-blur hover:shadow-xl transition-all duration-300">
-              <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-green-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <Heart className="h-8 w-8 text-white" />
-              </div>
-              <h4 className="text-xl font-bold mb-3 text-gray-900">Loyalty Programs</h4>
-              <p className="text-gray-600 leading-relaxed">
-                Retain customers with loyalty programs, track engagement, and reward your best customers
-              </p>
-              <Link href="/submit-business">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-blue-200 text-[#0A558C] hover:bg-blue-50 hover:border-blue-300 mt-4"
-                >
-                  Get Started
-                </Button>
-              </Link>
-            </Card>
-          </div>
-        </div>
-      </section>
 
       {/* Main Content */}
       <section className="py-20 bg-white">

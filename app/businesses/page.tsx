@@ -148,16 +148,6 @@ export default function BusinessesPage() {
     },
   ], [])
 
-  // Load businesses data (online or cached)
-  useEffect(() => {
-    loadBusinesses()
-  }, [loadBusinesses])
-
-  // Load cached user location on mount
-  useEffect(() => {
-    loadCachedLocation()
-  }, [])
-
   const loadBusinesses = useCallback(async () => {
     try {
       setLoading(true)
@@ -166,8 +156,8 @@ export default function BusinessesPage() {
         // Make real API call to fetch businesses
         const params = new URLSearchParams()
         if (userLocation) {
-          params.append('lat', userLocation.latitude.toString())
-          params.append('lng', userLocation.longitude.toString())
+          params.append('lat', userLocation.lat.toString())
+          params.append('lng', userLocation.lng.toString())
           params.append('radius', '10') // 10km radius
         }
         if (selectedCategory && selectedCategory !== 'all') {
@@ -184,14 +174,14 @@ export default function BusinessesPage() {
           setFromCache(false)
 
           // Cache the fresh data
-          await offlineCache.cacheBusinesses(businessList, userLocation || undefined)
+          await offlineCache.cacheBusinesses(businessList as Array<Record<string, unknown>>, userLocation || undefined)
         } else {
           throw new Error('Failed to fetch businesses')
         }
       } else {
         // Load from cache when offline
         const cachedBusinesses = await offlineCache.getCachedBusinesses(userLocation || undefined)
-        setBusinesses(cachedBusinesses)
+        setBusinesses(cachedBusinesses as unknown as Business[])
         setFromCache(true)
       }
     } catch (error) {
@@ -201,7 +191,7 @@ export default function BusinessesPage() {
       if (isOnline) {
         try {
           const cachedBusinesses = await offlineCache.getCachedBusinesses(userLocation || undefined)
-          setBusinesses(cachedBusinesses)
+          setBusinesses(cachedBusinesses as unknown as Business[])
           setFromCache(true)
         } catch (cacheError) {
           console.error("Cache fallback failed:", cacheError)
@@ -214,6 +204,16 @@ export default function BusinessesPage() {
       setLoading(false)
     }
   }, [isOnline, userLocation, selectedCategory, mockBusinesses])
+
+  // Load businesses data (online or cached)
+  useEffect(() => {
+    loadBusinesses()
+  }, [loadBusinesses])
+
+  // Load cached user location on mount
+  useEffect(() => {
+    loadCachedLocation()
+  }, [])
 
   const loadCachedLocation = async () => {
     try {
@@ -282,7 +282,7 @@ export default function BusinessesPage() {
   // Cache search results
   useEffect(() => {
     if (searchQuery && filteredBusinesses.length > 0) {
-      offlineCache.cacheSearchResults(searchQuery, filteredBusinesses, userLocation || undefined)
+      offlineCache.cacheSearchResults(searchQuery, filteredBusinesses as Array<Record<string, unknown>>, userLocation || undefined)
     }
   }, [searchQuery, filteredBusinesses, userLocation])
 
