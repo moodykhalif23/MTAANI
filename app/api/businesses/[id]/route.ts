@@ -83,14 +83,91 @@ export async function GET(
   }
 }
 
-// PUT /api/businesses/[id] - Update business
+// PUT /api/businesses/[id] - Update business or admin actions
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
     const businessId = params.id
+    const body = await request.json()
+    const { action, adminToken, rejectionReason } = body
 
+    // Check if this is an admin action
+    if (action && adminToken) {
+      // Verify admin access
+      const expectedAdminToken = process.env.ADMIN_DASHBOARD_TOKEN || process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_TOKEN || 'dev_admin_dashboard_token_2024_secure'
+      if (adminToken !== expectedAdminToken) {
+        return NextResponse.json(
+          { error: 'Unauthorized - admin access required' },
+          { status: 401 }
+        )
+      }
+
+      // Find business
+      const business = await businessService.findBusinessById(businessId)
+      if (!business) {
+        return NextResponse.json(
+          { error: 'Business not found' },
+          { status: 404 }
+        )
+      }
+
+      // Get client info for logging
+      const clientIP = request.headers.get('x-forwarded-for') || 'unknown'
+      const userAgent = request.headers.get('user-agent') || 'unknown'
+
+      // Handle admin actions
+      switch (action) {
+        case 'approve':
+          const approveResult = await businessService.updateBusinessStatus(businessId, 'approved')
+          if (approveResult.success) {
+            securityAudit.logEvent(
+              'business_approved',
+              'low',
+              'Business approved by admin',
+              { businessId, businessName: business.name },
+              'admin',
+              clientIP,
+              userAgent
+            )
+            return NextResponse.json({
+              success: true,
+              message: 'Business approved successfully',
+              data: { business: approveResult.business }
+            })
+          }
+          break
+
+        case 'reject':
+          const rejectResult = await businessService.updateBusinessStatus(businessId, 'rejected', rejectionReason)
+          if (rejectResult.success) {
+            securityAudit.logEvent(
+              'business_rejected',
+              'low',
+              'Business rejected by admin',
+              { businessId, businessName: business.name, reason: rejectionReason },
+              'admin',
+              clientIP,
+              userAgent
+            )
+            return NextResponse.json({
+              success: true,
+              message: 'Business rejected',
+              data: { business: rejectResult.business }
+            })
+          }
+          break
+
+        default:
+          return NextResponse.json(
+            { error: 'Invalid action. Use "approve" or "reject"' },
+            { status: 400 }
+          )
+      }
+    }
+
+    // Regular business update (non-admin)
     // Verify authentication
     const authHeader = request.headers.get('authorization')
     const accessToken = extractTokenFromHeader(authHeader)

@@ -152,16 +152,6 @@ export default function LoginPage() {
                 </Link>
               </p>
             </div>
-
-            {/* Demo Accounts */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <p className="text-xs text-gray-600 mb-2 font-medium">Demo Accounts:</p>
-              <div className="space-y-1 text-xs text-gray-500">
-                <p>User: user@example.com / secret123</p>
-                <p>Business: business@example.com / secret123</p>
-                <p>Admin: admin@example.com / secret123</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

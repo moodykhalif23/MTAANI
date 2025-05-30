@@ -415,6 +415,77 @@ export class BusinessService {
     }
   }
 
+  // Find businesses with filters (for admin)
+  async findBusinesses(
+    filters: Record<string, unknown> = {},
+    options: { limit?: number; skip?: number } = {}
+  ): Promise<{ success: boolean; businesses?: BusinessDocument[]; total?: number; error?: string }> {
+    try {
+      const selector: Record<string, unknown> = {
+        type: 'business',
+        isDeleted: false,
+        ...filters
+      }
+
+      const result = await couchdb.find<BusinessDocument>(this.dbName, selector, {
+        limit: options.limit || 50,
+        skip: options.skip || 0,
+        sort: [{ createdAt: 'desc' }]
+      })
+
+      return {
+        success: true,
+        businesses: result.docs,
+        total: result.docs.length
+      }
+    } catch (error) {
+      console.error('Find businesses error:', error)
+      return { success: false, error: 'Internal server error' }
+    }
+  }
+
+  // Update business status (for admin approval/rejection)
+  async updateBusinessStatus(
+    businessId: string,
+    status: 'approved' | 'rejected' | 'pending',
+    reason?: string
+  ): Promise<{ success: boolean; business?: BusinessDocument; error?: string }> {
+    try {
+      const business = await this.findBusinessById(businessId)
+      if (!business) {
+        return { success: false, error: 'Business not found' }
+      }
+
+      const updatedBusiness: BusinessDocument = {
+        ...business,
+        status: status === 'approved' ? 'active' : status === 'rejected' ? 'inactive' : 'pending',
+        version: business.version + 1,
+        updatedAt: new Date().toISOString()
+      }
+
+      // Add approval/rejection metadata
+      if (status === 'approved') {
+        updatedBusiness.approvedAt = new Date().toISOString()
+      } else if (status === 'rejected') {
+        updatedBusiness.rejectedAt = new Date().toISOString()
+        if (reason) {
+          updatedBusiness.rejectionReason = reason
+        }
+      }
+
+      const response = await couchdb.updateDocument(this.dbName, updatedBusiness)
+
+      if (response.ok) {
+        return { success: true, business: updatedBusiness }
+      }
+
+      return { success: false, error: 'Failed to update business status' }
+    } catch (error) {
+      console.error('Update business status error:', error)
+      return { success: false, error: 'Internal server error' }
+    }
+  }
+
   // Private helper methods
   private filterByDistance(
     businesses: BusinessDocument[],

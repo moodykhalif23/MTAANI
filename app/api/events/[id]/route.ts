@@ -1,48 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { securityAudit } from '@/lib/security-audit'
-
-// This would import from the same storage as the main events route
-// In production, this would be a database service
-interface Event {
-  id: string
-  title: string
-  category: string
-  description: string
-  longDescription: string
-  date: string
-  startTime: string
-  endTime: string
-  location: string
-  address: string
-  maxAttendees: string
-  ticketPrice: string
-  isFree: boolean
-  organizerName: string
-  organizerEmail: string
-  organizerPhone: string
-  website: string
-  tags: string[]
-  images: string[]
-  requiresRegistration: boolean
-  ageRestriction: string
-  specialRequirements: string
-  status: 'pending_approval' | 'approved' | 'rejected'
-  submittedAt: string
-  submittedBy?: string
-  approvedAt?: string
-  rejectedAt?: string
-  rejectionReason?: string
-}
-
-// Import the same storage (in production, use database)
-declare global {
-  // eslint-disable-next-line no-var
-  var eventsStorage: Event[]
-}
-
-if (!global.eventsStorage) {
-  global.eventsStorage = []
-}
+import { eventService } from '@/lib/services/event-service'
 
 // GET /api/events/[id] - Get specific event
 export async function GET(
@@ -59,7 +17,7 @@ export async function GET(
       )
     }
 
-    const event = global.eventsStorage.find(e => e.id === eventId)
+    const event = await eventService.findEventById(eventId)
 
     if (!event) {
       return NextResponse.json(
@@ -74,7 +32,7 @@ export async function GET(
 
     if (event.status !== 'approved') {
       // Only admin can view non-approved events
-      const expectedAdminToken = process.env.ADMIN_DASHBOARD_TOKEN || 'dev_admin_token_789'
+      const expectedAdminToken = process.env.ADMIN_DASHBOARD_TOKEN || process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_TOKEN || 'dev_admin_dashboard_token_2024_secure'
       if (adminToken !== expectedAdminToken) {
         return NextResponse.json(
           { error: 'Event not found' },
@@ -83,9 +41,39 @@ export async function GET(
       }
     }
 
+    // Transform event for API response
+    const transformedEvent = {
+      id: event._id,
+      title: event.title,
+      category: event.category,
+      description: event.description,
+      longDescription: event.longDescription,
+      startDate: event.schedule.startDate,
+      endDate: event.schedule.endDate,
+      startTime: event.schedule.startTime,
+      endTime: event.schedule.endTime,
+      location: event.location.venue,
+      address: event.location.address,
+      maxAttendees: event.capacity.max,
+      ticketPrice: event.pricing.amount || 0,
+      isFree: event.pricing.type === 'free',
+      organizerName: event.organizer.name,
+      organizerEmail: event.organizer.email,
+      organizerPhone: event.organizer.phone,
+      website: event.organizer.website,
+      tags: event.tags,
+      images: event.media.gallery,
+      requiresRegistration: event.registration.required,
+      status: event.status,
+      submittedAt: event.createdAt,
+      approvedAt: event.approvedAt,
+      rejectedAt: event.rejectedAt,
+      rejectionReason: event.rejectionReason
+    }
+
     return NextResponse.json({
       success: true,
-      data: { event }
+      data: { event: transformedEvent }
     })
 
   } catch (error) {
@@ -108,7 +96,7 @@ export async function PUT(
     const { action, adminToken, rejectionReason } = body
 
     // Verify admin access
-    const expectedAdminToken = process.env.ADMIN_DASHBOARD_TOKEN || 'dev_admin_token_789'
+    const expectedAdminToken = process.env.ADMIN_DASHBOARD_TOKEN || process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_TOKEN || 'dev_admin_dashboard_token_2024_secure'
     if (adminToken !== expectedAdminToken) {
       return NextResponse.json(
         { error: 'Unauthorized - admin access required' },
@@ -123,17 +111,6 @@ export async function PUT(
       )
     }
 
-    const eventIndex = global.eventsStorage.findIndex(e => e.id === eventId)
-
-    if (eventIndex === -1) {
-      return NextResponse.json(
-        { error: 'Event not found' },
-        { status: 404 }
-      )
-    }
-
-    const event = global.eventsStorage[eventIndex]
-
     // Get client information for logging
     const clientIP = request.headers.get('x-forwarded-for') ||
                      request.headers.get('x-real-ip') ||
@@ -142,47 +119,58 @@ export async function PUT(
 
     switch (action) {
       case 'approve':
-        event.status = 'approved'
-        event.approvedAt = new Date().toISOString()
+        const approveResult = await eventService.updateEventStatus(eventId, 'approved')
+
+        if (!approveResult.success) {
+          return NextResponse.json(
+            { error: approveResult.error || 'Failed to approve event' },
+            { status: 400 }
+          )
+        }
 
         // Log approval
         securityAudit.logEvent(
-          'event_approved',
+          'suspicious_activity',
           'low',
           'Event approved by admin',
           {
             eventId,
-            title: event.title,
-            organizerEmail: event.organizerEmail
+            title: approveResult.event?.title,
+            organizerEmail: approveResult.event?.organizer?.email
           },
           'admin',
           clientIP,
           userAgent
         )
 
-        console.log('Event approved:', { eventId, title: event.title })
+        console.log('Event approved:', { eventId, title: approveResult.event?.title })
 
         return NextResponse.json({
           success: true,
           message: 'Event approved successfully',
-          data: { event }
+          data: { event: approveResult.event }
         })
 
       case 'reject':
-        event.status = 'rejected'
-        event.rejectedAt = new Date().toISOString()
-        event.rejectionReason = rejectionReason || 'No reason provided'
+        const rejectResult = await eventService.updateEventStatus(eventId, 'rejected', rejectionReason)
+
+        if (!rejectResult.success) {
+          return NextResponse.json(
+            { error: rejectResult.error || 'Failed to reject event' },
+            { status: 400 }
+          )
+        }
 
         // Log rejection
         securityAudit.logEvent(
-          'event_rejected',
+          'suspicious_activity',
           'low',
           'Event rejected by admin',
           {
             eventId,
-            title: event.title,
-            organizerEmail: event.organizerEmail,
-            reason: event.rejectionReason
+            title: rejectResult.event?.title,
+            organizerEmail: rejectResult.event?.organizer?.email,
+            reason: rejectionReason
           },
           'admin',
           clientIP,
@@ -191,14 +179,14 @@ export async function PUT(
 
         console.log('Event rejected:', {
           eventId,
-          title: event.title,
-          reason: event.rejectionReason
+          title: rejectResult.event?.title,
+          reason: rejectionReason
         })
 
         return NextResponse.json({
           success: true,
           message: 'Event rejected',
-          data: { event }
+          data: { event: rejectResult.event }
         })
 
       default:
@@ -228,7 +216,7 @@ export async function DELETE(
     const adminToken = searchParams.get('adminToken')
 
     // Verify admin access
-    const expectedAdminToken = process.env.ADMIN_DASHBOARD_TOKEN || 'dev_admin_token_789'
+    const expectedAdminToken = process.env.ADMIN_DASHBOARD_TOKEN || process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_TOKEN || 'dev_admin_dashboard_token_2024_secure'
     if (adminToken !== expectedAdminToken) {
       return NextResponse.json(
         { error: 'Unauthorized - admin access required' },
@@ -243,17 +231,24 @@ export async function DELETE(
       )
     }
 
-    const eventIndex = global.eventsStorage.findIndex(e => e.id === eventId)
-
-    if (eventIndex === -1) {
+    // Get event details before deletion for logging
+    const event = await eventService.findEventById(eventId)
+    if (!event) {
       return NextResponse.json(
         { error: 'Event not found' },
         { status: 404 }
       )
     }
 
-    const event = global.eventsStorage[eventIndex]
-    global.eventsStorage.splice(eventIndex, 1)
+    // Delete event using service
+    const result = await eventService.deleteEvent(eventId, 'admin', 'Deleted by admin')
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error || 'Failed to delete event' },
+        { status: 400 }
+      )
+    }
 
     // Log deletion
     const clientIP = request.headers.get('x-forwarded-for') ||
@@ -262,13 +257,13 @@ export async function DELETE(
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
     securityAudit.logEvent(
-      'event_deleted',
+      'suspicious_activity',
       'medium',
       'Event deleted by admin',
       {
         eventId,
         title: event.title,
-        organizerEmail: event.organizerEmail
+        organizerEmail: event.organizer?.email
       },
       'admin',
       clientIP,

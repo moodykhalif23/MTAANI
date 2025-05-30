@@ -17,33 +17,14 @@ interface User {
 }
 
 // Mock user database - in production, use a real database
+const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@mtaani.dev'
+const adminName = process.env.DEFAULT_ADMIN_NAME || 'Mtaani Administrator'
+
 const users: Record<string, User> = {
-  '1': {
-    id: '1',
-    email: 'user@example.com',
-    name: 'John Doe',
-    role: 'user',
-    passwordHash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/RK.s5uIoO',
-    verified: true,
-    loginAttempts: 0,
-    createdAt: new Date(),
-    tokenVersion: 1
-  },
-  '2': {
-    id: '2',
-    email: 'business@example.com',
-    name: 'Jane Smith',
-    role: 'business_owner',
-    passwordHash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/RK.s5uIoO',
-    verified: true,
-    loginAttempts: 0,
-    createdAt: new Date(),
-    tokenVersion: 1
-  },
-  '3': {
-    id: '3',
-    email: 'admin@example.com',
-    name: 'Admin User',
+  'admin_001': {
+    id: 'admin_001',
+    email: adminEmail,
+    name: adminName,
     role: 'admin',
     passwordHash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/RK.s5uIoO',
     verified: true,
@@ -66,14 +47,14 @@ const activeSessions = new Map<string, {
 export async function POST(request: NextRequest) {
   try {
     // Get client information
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
+    const clientIP = request.headers.get('x-forwarded-for') ||
+                     request.headers.get('x-real-ip') ||
                      'unknown'
     const userAgent = request.headers.get('user-agent') || 'unknown'
 
     // Get refresh token from cookie
     const refreshTokenCookie = request.cookies.get('mtaani_refresh_token')
-    
+
     if (!refreshTokenCookie) {
       securityAudit.logEvent(
         'invalid_token',
@@ -93,13 +74,13 @@ export async function POST(request: NextRequest) {
 
     // Verify refresh token
     const tokenResult = verifyRefreshToken(refreshTokenCookie.value)
-    
+
     if (!tokenResult.valid) {
       securityAudit.logEvent(
         'invalid_token',
         'high',
         'Invalid refresh token used',
-        { 
+        {
           expired: tokenResult.expired,
           hasPayload: !!tokenResult.payload.userId
         },
@@ -129,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     // Find user
     const user = Object.values(users).find(u => u.id === userId)
-    
+
     if (!user) {
       securityAudit.logEvent(
         'invalid_token',
@@ -153,7 +134,7 @@ export async function POST(request: NextRequest) {
         'invalid_token',
         'high',
         'Refresh token with invalid version',
-        { 
+        {
           userId,
           expectedVersion: user.tokenVersion,
           providedVersion: tokenVersion
@@ -171,7 +152,7 @@ export async function POST(request: NextRequest) {
 
     // Check if session exists
     const session = activeSessions.get(sessionId)
-    
+
     if (!session || session.userId !== userId) {
       securityAudit.logEvent(
         'invalid_token',
@@ -213,9 +194,9 @@ export async function POST(request: NextRequest) {
     // Generate new token pair
     const newSessionId = generateSessionId()
     const tokenPair = generateTokenPair(
-      user.id, 
-      user.email, 
-      user.role, 
+      user.id,
+      user.email,
+      user.role,
       newSessionId,
       user.tokenVersion || 1
     )
@@ -233,7 +214,7 @@ export async function POST(request: NextRequest) {
       'subscription_access',
       'low',
       'Token refreshed successfully',
-      { 
+      {
         userId,
         oldSessionId: sessionId,
         newSessionId
@@ -280,7 +261,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Token refresh error:', error)
-    
+
     securityAudit.logEvent(
       'subscription_access',
       'high',
@@ -302,22 +283,22 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const refreshTokenCookie = request.cookies.get('mtaani_refresh_token')
-    
+
     if (!refreshTokenCookie) {
       return NextResponse.json({ valid: false, reason: 'No refresh token' })
     }
 
     const tokenResult = verifyRefreshToken(refreshTokenCookie.value)
-    
+
     if (!tokenResult.valid) {
-      return NextResponse.json({ 
-        valid: false, 
+      return NextResponse.json({
+        valid: false,
         reason: tokenResult.expired ? 'Token expired' : 'Invalid token'
       })
     }
 
     const { userId, sessionId } = tokenResult.payload
-    
+
     // Check if user exists
     const user = Object.values(users).find(u => u.id === userId)
     if (!user) {
@@ -330,7 +311,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ valid: false, reason: 'Session not found' })
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       valid: true,
       userId,
       sessionId,

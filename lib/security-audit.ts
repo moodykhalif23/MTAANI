@@ -4,7 +4,7 @@ interface SecurityEvent {
   id: string
   timestamp: Date
   userId?: string
-  eventType: 'subscription_access' | 'plan_upgrade' | 'payment_attempt' | 'feature_bypass_attempt' | 'usage_limit_exceeded' | 'invalid_token' | 'suspicious_activity'
+  eventType: 'subscription_access' | 'plan_upgrade' | 'payment_attempt' | 'feature_bypass_attempt' | 'usage_limit_exceeded' | 'invalid_token' | 'suspicious_activity' | 'api_access' | 'api_key_created' | 'api_key_revoked' | 'rate_limit_exceeded' | 'admin_access' | 'external_api_access'
   severity: 'low' | 'medium' | 'high' | 'critical'
   description: string
   metadata: Record<string, unknown>

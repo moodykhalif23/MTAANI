@@ -2,10 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { businessService } from '@/lib/services/business-service'
 import { verifyAccessToken, extractTokenFromHeader } from '@/lib/jwt'
 import { securityAudit } from '@/lib/security-audit'
+import { withSecurity } from '@/lib/middleware/api-security'
 
 // GET /api/businesses - Search and list businesses
 export async function GET(request: NextRequest) {
-  try {
+  return withSecurity(request, {
+    rateLimit: {
+      requests: 100,
+      windowMs: 15 * 60 * 1000 // 15 minutes
+    },
+    allowedOrigins: ['*'] // Allow CORS for public API
+  }, async (request: NextRequest) => {
+    try {
     const { searchParams } = new URL(request.url)
 
     // Extract search parameters
@@ -64,7 +72,7 @@ export async function GET(request: NextRequest) {
 
     // Log search for analytics
     securityAudit.logEvent(
-      'business_search',
+      'suspicious_activity',
       'low',
       'Business search performed',
       {
@@ -112,41 +120,50 @@ export async function GET(request: NextRequest) {
       }
     })
 
-  } catch (error) {
-    console.error('Business search error:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to search businesses'
-      },
-      { status: 500 }
-    )
-  }
+    } catch (error) {
+      console.error('Business search error:', error)
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to search businesses'
+        },
+        { status: 500 }
+      )
+    }
+  })
 }
 
 // POST /api/businesses - Create a new business
 export async function POST(request: NextRequest) {
-  try {
-    // Verify authentication
-    const authHeader = request.headers.get('authorization')
-    const accessToken = extractTokenFromHeader(authHeader)
+  return withSecurity(request, {
+    requireAuth: true,
+    rateLimit: {
+      requests: 10,
+      windowMs: 60 * 60 * 1000 // 1 hour
+    },
+    allowedOrigins: ['*']
+  }, async (request: NextRequest) => {
+    try {
+      // Verify authentication
+      const authHeader = request.headers.get('authorization')
+      const accessToken = extractTokenFromHeader(authHeader)
 
-    if (!accessToken) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
-    }
+      if (!accessToken) {
+        return NextResponse.json(
+          { error: 'Authentication required' },
+          { status: 401 }
+        )
+      }
 
-    const tokenResult = verifyAccessToken(accessToken)
-    if (!tokenResult.valid) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
+      const tokenResult = verifyAccessToken(accessToken)
+      if (!tokenResult.valid) {
+        return NextResponse.json(
+          { error: 'Invalid or expired token' },
+          { status: 401 }
+        )
+      }
 
-    const userId = tokenResult.payload.userId
+      const userId = tokenResult.payload.userId
 
     // Parse request body
     const body = await request.json()
@@ -245,14 +262,15 @@ export async function POST(request: NextRequest) {
       message: 'Business created successfully'
     }, { status: 201 })
 
-  } catch (error) {
-    console.error('Business creation error:', error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to create business'
-      },
-      { status: 500 }
-    )
-  }
+    } catch (error) {
+      console.error('Business creation error:', error)
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to create business'
+        },
+        { status: 500 }
+      )
+    }
+  })
 }

@@ -175,7 +175,9 @@ export default function BusinessDashboard() {
             </div>
             <div className="flex gap-3">
               <Button variant="outline">Export Report</Button>
-              <Button>Upgrade Plan</Button>
+              <Link href="/business/pricing">
+                <Button>View Plans</Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -572,7 +574,7 @@ export default function BusinessDashboard() {
                 <p className="text-gray-600 leading-relaxed">
                   Easily manage your menu or catalog, update prices in real-time, and showcase your products online
                 </p>
-                <Link href="/pricing">
+                <Link href="/business/pricing">
                   <Button
                     variant="outline"
                     size="sm"

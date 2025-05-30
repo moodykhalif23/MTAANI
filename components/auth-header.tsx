@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import Image from "next/image"
-import { User, LogOut, Settings, Building, Calendar } from "lucide-react"
+import { User, LogOut, Settings, Building, Calendar, Crown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -80,12 +80,6 @@ export function AuthHeader() {
             >
               Community
             </Link>
-            <Link
-              href="/pricing"
-              className="text-sm font-medium text-gray-700 hover:text-[#0A558C] transition-colors duration-200"
-            >
-              Pricing
-            </Link>
           </nav>
 
           <div className="flex items-center space-x-3">
@@ -125,12 +119,20 @@ export function AuthHeader() {
                     </Link>
                   </DropdownMenuItem>
                   {user.role === "business_owner" && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/business/dashboard" className="cursor-pointer">
-                        <Building className="mr-2 h-4 w-4" />
-                        <span>Business Dashboard</span>
-                      </Link>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/business/dashboard" className="cursor-pointer">
+                          <Building className="mr-2 h-4 w-4" />
+                          <span>Business Dashboard</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/business/pricing" className="cursor-pointer">
+                          <Crown className="mr-2 h-4 w-4" />
+                          <span>Pricing Plans</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
                   {user.role === "admin" && (
                     <DropdownMenuItem asChild>

@@ -34,7 +34,6 @@ const authRequiredRoutes = [
 // Public routes that don't require any authentication
 const publicRoutes = [
   '/',
-  '/pricing',
   '/auth/login',
   '/auth/signup',
   '/auth/verify',

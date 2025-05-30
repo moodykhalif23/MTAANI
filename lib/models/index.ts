@@ -71,6 +71,9 @@ export interface BusinessDocument extends BaseDocument {
   category: string
   subcategory?: string
   status: 'active' | 'inactive' | 'pending' | 'suspended'
+  approvedAt?: string
+  rejectedAt?: string
+  rejectionReason?: string
   verification: {
     status: 'pending' | 'verified' | 'rejected'
     verifiedAt?: string
@@ -244,13 +247,21 @@ export interface ReviewDocument extends BaseDocument {
 export interface EventDocument extends BaseDocument {
   type: 'event'
   organizerId: string // User or Business ID
-  organizerType: 'user' | 'business'
   title: string
   description: string
+  longDescription: string
   category: string
   subcategory?: string
-  status: 'draft' | 'published' | 'cancelled' | 'completed'
-  visibility: 'public' | 'private' | 'unlisted'
+  status: 'pending_approval' | 'approved' | 'rejected' | 'draft' | 'published' | 'cancelled' | 'completed'
+  approvedAt?: string
+  rejectedAt?: string
+  rejectionReason?: string
+  organizer: {
+    name: string
+    email: string
+    phone: string
+    website?: string
+  }
   schedule: {
     startDate: string
     endDate: string

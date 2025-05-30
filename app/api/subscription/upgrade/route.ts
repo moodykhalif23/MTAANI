@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SubscriptionPlan, SUBSCRIPTION_PLANS, getPlanPrice } from '@/lib/subscription-types'
+import { subscriptionService } from '@/lib/services/subscription-service'
+import { securityAudit } from '@/lib/security-audit'
 
 interface UpgradeRequest {
   userId: string
+  businessId?: string
   newPlan: SubscriptionPlan
   isAnnual: boolean
   paymentMethodId?: string
@@ -46,7 +49,11 @@ function validateUpgrade(currentPlan: SubscriptionPlan, newPlan: SubscriptionPla
 export async function POST(request: NextRequest) {
   try {
     const body: UpgradeRequest = await request.json()
-    const { userId, newPlan, isAnnual, securityToken } = body
+    const { userId, businessId, newPlan, isAnnual, paymentMethodId, securityToken } = body
+
+    // Get client information
+    const clientIP = request.headers.get('x-forwarded-for') || 'unknown'
+    const userAgent = request.headers.get('user-agent') || 'unknown'
 
     // Validate required fields
     if (!userId || !newPlan || !securityToken) {
@@ -64,22 +71,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get current subscription (in production, from database)
-    // For now, simulate getting from secure server storage
-    const expectedToken = process.env.SECURITY_VALIDATION_TOKEN || 'dev_token_123'
-    const currentSubscription = {
-      userId,
-      plan: 'starter' as SubscriptionPlan,
-      status: 'active' as const,
-      securityToken: expectedToken
-    }
-
     // Verify security token
-    if (currentSubscription.securityToken !== securityToken) {
+    const expectedToken = process.env.SECURITY_VALIDATION_TOKEN || 'dev_token_123'
+    if (securityToken !== expectedToken) {
       console.warn(`Unauthorized upgrade attempt for user ${userId}`)
+      securityAudit.logEvent(
+        'invalid_token',
+        'medium',
+        'Unauthorized subscription upgrade attempt',
+        { userId, newPlan },
+        userId,
+        clientIP,
+        userAgent
+      )
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
+      )
+    }
+
+    // Get current subscription from database
+    const currentSubscription = businessId
+      ? await subscriptionService.findSubscriptionByBusinessId(businessId)
+      : await subscriptionService.findSubscriptionByUserId(userId)
+
+    if (!currentSubscription) {
+      return NextResponse.json(
+        { error: 'No subscription found' },
+        { status: 404 }
       )
     }
 
@@ -96,6 +115,20 @@ export async function POST(request: NextRequest) {
 
     // For free plan, no payment needed
     if (amount === 0) {
+      // Upgrade to free plan directly
+      const upgradeResult = await subscriptionService.upgradeSubscription(
+        currentSubscription._id!,
+        newPlan,
+        amount
+      )
+
+      if (!upgradeResult.success) {
+        return NextResponse.json(
+          { error: upgradeResult.error || 'Failed to upgrade subscription' },
+          { status: 400 }
+        )
+      }
+
       return NextResponse.json(
         {
           success: true,
@@ -110,6 +143,23 @@ export async function POST(request: NextRequest) {
     const paymentIntent = await processPayment(amount, 'KES')
 
     if (paymentIntent.status !== 'succeeded') {
+      // Log failed payment
+      securityAudit.logEvent(
+        'payment_attempt',
+        'medium',
+        'Subscription upgrade payment failed',
+        {
+          userId,
+          newPlan,
+          amount,
+          paymentId: paymentIntent.id,
+          paymentStatus: paymentIntent.status
+        },
+        userId,
+        clientIP,
+        userAgent
+      )
+
       return NextResponse.json(
         {
           error: 'Payment failed',
@@ -120,19 +170,40 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update subscription in database (simulated)
-    const updatedSubscription = {
-      ...currentSubscription,
-      plan: newPlan,
-      status: 'active' as const,
-      currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(Date.now() + (isAnnual ? 365 : 30) * 24 * 60 * 60 * 1000),
-      paymentVerified: true,
-      lastPaymentDate: new Date(),
-      paymentId: paymentIntent.id
+    // Update subscription in database
+    const upgradeResult = await subscriptionService.upgradeSubscription(
+      currentSubscription._id!,
+      newPlan,
+      amount,
+      paymentMethodId || paymentIntent.id
+    )
+
+    if (!upgradeResult.success) {
+      return NextResponse.json(
+        { error: upgradeResult.error || 'Failed to upgrade subscription' },
+        { status: 400 }
+      )
     }
 
-    // Log the upgrade for security audit
+    // Log successful upgrade
+    securityAudit.logEvent(
+      'plan_upgrade',
+      'low',
+      'Subscription upgraded successfully',
+      {
+        userId,
+        fromPlan: currentSubscription.plan,
+        toPlan: newPlan,
+        amount,
+        currency: 'KES',
+        paymentId: paymentIntent.id,
+        isAnnual
+      },
+      userId,
+      clientIP,
+      userAgent
+    )
+
     console.log(`Subscription upgrade completed:`, {
       userId,
       fromPlan: currentSubscription.plan,
@@ -141,8 +212,8 @@ export async function POST(request: NextRequest) {
       currency: 'KES',
       paymentId: paymentIntent.id,
       timestamp: new Date().toISOString(),
-      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-      userAgent: request.headers.get('user-agent') || 'unknown'
+      ip: clientIP,
+      userAgent
     })
 
     return NextResponse.json({
@@ -152,7 +223,6 @@ export async function POST(request: NextRequest) {
       paymentId: paymentIntent.id,
       amount,
       currency: 'KES',
-      currentPeriodEnd: updatedSubscription.currentPeriodEnd,
       paymentRequired: true,
       paymentVerified: true
     })

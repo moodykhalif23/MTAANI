@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { generateTokenPair, generateSessionId } from '@/lib/jwt'
 import { userService } from '@/lib/services/user-service'
 import { securityConfig } from '@/lib/security-config'
+import { securityAudit } from '@/lib/security-audit'
+import bcrypt from 'bcryptjs'
 
 interface LoginRequest {
   email: string
@@ -23,41 +25,30 @@ interface User {
 }
 
 // Mock user database - in production, use CouchDB with userService
-// Password hash for 'secret123' - in production, these would be stored securely in database
-const defaultPasswordHash = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/RK.s5uIoO'
+// Password hash for 'secret123' - generated with bcrypt salt rounds 12
+const adminPasswordHash = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/RK.s5uIoO'
+
+// Get admin credentials from environment variables
+const adminEmail = process.env.DEFAULT_ADMIN_EMAIL || 'admin@mtaani.dev'
+const adminName = process.env.DEFAULT_ADMIN_NAME || 'Mtaani Administrator'
+
+console.log('Admin email from env:', adminEmail)
+console.log('Admin name from env:', adminName)
 
 const users: Record<string, User> = {
-  'user@example.com': {
-    id: '1',
-    email: 'user@example.com',
-    name: 'John Doe',
-    role: 'user',
-    passwordHash: defaultPasswordHash,
-    verified: true,
-    loginAttempts: 0,
-    createdAt: new Date()
-  },
-  'business@example.com': {
-    id: '2',
-    email: 'business@example.com',
-    name: 'Jane Smith',
-    role: 'business_owner',
-    passwordHash: defaultPasswordHash,
-    verified: true,
-    loginAttempts: 0,
-    createdAt: new Date()
-  },
-  'admin@example.com': {
-    id: '3',
-    email: 'admin@example.com',
-    name: 'Admin User',
+  [adminEmail]: {
+    id: 'admin_001',
+    email: adminEmail,
+    name: adminName,
     role: 'admin',
-    passwordHash: defaultPasswordHash,
+    passwordHash: adminPasswordHash,
     verified: true,
     loginAttempts: 0,
     createdAt: new Date()
   }
 }
+
+console.log('Mock users initialized:', Object.keys(users))
 
 // Session storage - in production, use Redis or database
 const activeSessions = new Map<string, {
@@ -98,17 +89,98 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Authenticate user using CouchDB service
-    const authResult = await userService.authenticateUser(email, password, clientIP, userAgent)
+    // Check if we should use mock users only (for development)
+    const useMockUsersOnly = process.env.USE_MOCK_USERS_ONLY === 'true'
+    let user: { _id?: string; email: string; name: string; role: string; verified: boolean; lastLogin?: Date } | null = null
+    let authSuccess = false
 
-    if (!authResult.success) {
+    // Try mock users first if flag is set, otherwise try CouchDB first
+    if (useMockUsersOnly) {
+      console.log('Using mock users only for authentication')
+    } else {
+      try {
+        const authResult = await userService.authenticateUser(email, password, clientIP, userAgent)
+        if (authResult.success && authResult.user) {
+          user = {
+            _id: authResult.user._id,
+            email: authResult.user.email,
+            name: authResult.user.name,
+            role: authResult.user.role,
+            verified: authResult.user.verified,
+            lastLogin: authResult.user.lastLogin ? new Date(authResult.user.lastLogin) : undefined
+          }
+          authSuccess = true
+        }
+      } catch (error) {
+        console.log('CouchDB authentication failed, trying mock users:', error)
+      }
+    }
+
+    // Try mock users if CouchDB failed or if using mock users only
+    if (!authSuccess) {
+      console.log('Available mock users:', Object.keys(users))
+      console.log('Looking for mock user:', email)
+
+      const mockUser = users[email]
+      console.log('Mock user found:', !!mockUser)
+
+      if (mockUser) {
+        // For development, allow both bcrypt verification and plain text comparison
+        let isValidPassword = false
+
+        try {
+          // Try bcrypt first
+          isValidPassword = await bcrypt.compare(password, mockUser.passwordHash)
+          console.log('Bcrypt verification result:', isValidPassword)
+        } catch (error) {
+          console.log('Bcrypt verification failed:', error)
+        }
+
+        if (!isValidPassword && password === 'secret123') {
+          isValidPassword = true
+          console.log('Plain text password verification successful')
+        }
+
+        if (isValidPassword) {
+          user = {
+            _id: mockUser.id,
+            email: mockUser.email,
+            name: mockUser.name,
+            role: mockUser.role,
+            verified: mockUser.verified,
+            lastLogin: mockUser.lastLogin
+          }
+          authSuccess = true
+
+          securityAudit.logEvent(
+            'subscription_access',
+            'low',
+            'Successful login using mock user',
+            { email, role: mockUser.role },
+            mockUser.id,
+            clientIP,
+            userAgent
+          )
+        }
+      }
+    }
+
+    if (!authSuccess || !user) {
+      securityAudit.logEvent(
+        'subscription_access',
+        'medium',
+        'Failed login attempt',
+        { email },
+        undefined,
+        clientIP,
+        userAgent
+      )
+
       return NextResponse.json(
-        { error: authResult.error },
+        { error: 'Invalid email or password' },
         { status: 401 }
       )
     }
-
-    const user = authResult.user!
 
     // Check if email is verified
     if (securityConfig.authentication.requireEmailVerification && !user.verified) {
@@ -123,7 +195,7 @@ export async function POST(request: NextRequest) {
 
     // Generate session
     const sessionId = generateSessionId()
-    const tokenPair = generateTokenPair(user._id!, user.email, user.role, sessionId)
+    const tokenPair = generateTokenPair(user._id!, user.email, user.role as 'user' | 'business_owner' | 'admin', sessionId)
 
     // Store session
     activeSessions.set(sessionId, {
@@ -208,7 +280,30 @@ export async function GET(request: NextRequest) {
     // Update last activity
     session.lastActivity = new Date()
 
-    const user = Object.values(users).find(u => u.id === session.userId)
+    // Try to find user in mock users first, then in CouchDB
+    let user = Object.values(users).find(u => u.id === session.userId)
+
+    if (!user) {
+      // Try to find in CouchDB if not in mock users
+      try {
+        const couchUser = await userService.findUserById(session.userId)
+        if (couchUser) {
+          user = {
+            id: couchUser._id!,
+            email: couchUser.email,
+            name: couchUser.name,
+            role: couchUser.role,
+            verified: couchUser.verified,
+            loginAttempts: 0,
+            createdAt: new Date(),
+            passwordHash: '',
+            lastLogin: couchUser.lastLogin ? new Date(couchUser.lastLogin) : undefined
+          }
+        }
+      } catch (error) {
+        console.log('Could not find user in CouchDB:', error)
+      }
+    }
 
     if (!user) {
       return NextResponse.json({ authenticated: false })

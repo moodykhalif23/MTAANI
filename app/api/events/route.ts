@@ -1,48 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAccessToken, extractTokenFromHeader } from '@/lib/jwt'
 import { securityAudit } from '@/lib/security-audit'
-
-// In-memory storage for events (in production, use a database)
-interface Event {
-  id: string
-  title: string
-  category: string
-  description: string
-  longDescription: string
-  date: string
-  startTime: string
-  endTime: string
-  location: string
-  address: string
-  maxAttendees: string
-  ticketPrice: string
-  isFree: boolean
-  organizerName: string
-  organizerEmail: string
-  organizerPhone: string
-  website: string
-  tags: string[]
-  images: string[]
-  requiresRegistration: boolean
-  ageRestriction: string
-  specialRequirements: string
-  status: 'pending_approval' | 'approved' | 'rejected'
-  submittedAt: string
-  submittedBy?: string
-  approvedAt?: string
-  rejectedAt?: string
-  rejectionReason?: string
-}
-
-// In-memory storage (replace with database in production)
-declare global {
-  // eslint-disable-next-line no-var
-  var eventsStorage: Event[]
-}
-
-if (!global.eventsStorage) {
-  global.eventsStorage = []
-}
+import { eventService } from '@/lib/services/event-service'
 
 // GET /api/events - Get events (with optional filters)
 export async function GET(request: NextRequest) {
@@ -53,43 +12,91 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const adminToken = searchParams.get('adminToken')
 
-    let filteredEvents = [...global.eventsStorage]
+    const skip = parseInt(searchParams.get('skip') || '0')
 
-    // If admin token provided, show all events including pending
-    if (adminToken) {
-      const expectedAdminToken = process.env.ADMIN_DASHBOARD_TOKEN || 'dev_admin_token_789'
-      if (adminToken !== expectedAdminToken) {
-        return NextResponse.json(
-          { error: 'Unauthorized' },
-          { status: 401 }
-        )
-      }
-      // Admin can see all events
-    } else {
-      // Public can only see approved events
-      filteredEvents = filteredEvents.filter(event => event.status === 'approved')
-    }
+    // Admin access check for sensitive data
+    const isAdminRequest = adminToken === (process.env.ADMIN_DASHBOARD_TOKEN || process.env.NEXT_PUBLIC_ADMIN_DASHBOARD_TOKEN || 'dev_admin_dashboard_token_2024_secure')
 
-    // Apply filters
-    if (status) {
-      filteredEvents = filteredEvents.filter(event => event.status === status)
+    // Build filters
+    const filters: Record<string, unknown> = {}
+
+    if (status && isAdminRequest) {
+      filters.status = status
+    } else if (!isAdminRequest) {
+      // Public requests only see approved events
+      filters.status = 'approved'
     }
 
     if (category) {
-      filteredEvents = filteredEvents.filter(event => event.category === category)
+      filters.category = category
     }
 
-    // Apply limit
-    filteredEvents = filteredEvents.slice(0, limit)
+    // Get events from database
+    const result = await eventService.findEvents(filters, { limit, skip })
 
-    // Sort by date (newest first)
-    filteredEvents.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error || 'Failed to fetch events' },
+        { status: 500 }
+      )
+    }
+
+    // Log the request
+    const clientIP = request.headers.get('x-forwarded-for') || 'unknown'
+    securityAudit.logEvent(
+      'api_access',
+      'low',
+      'Events API accessed',
+      {
+        status,
+        category,
+        limit,
+        skip,
+        isAdmin: isAdminRequest,
+        resultCount: result.events?.length || 0
+      },
+      undefined,
+      clientIP,
+      request.headers.get('user-agent') || 'unknown'
+    )
+
+    // Transform events for API response
+    const transformedEvents = result.events?.map(event => ({
+      id: event._id,
+      title: event.title,
+      category: event.category,
+      description: event.description,
+      longDescription: event.longDescription,
+      startDate: event.schedule.startDate,
+      endDate: event.schedule.endDate,
+      startTime: event.schedule.startTime,
+      endTime: event.schedule.endTime,
+      location: event.location.venue,
+      address: event.location.address,
+      maxAttendees: event.capacity.max,
+      ticketPrice: event.pricing.amount || 0,
+      isFree: event.pricing.type === 'free',
+      organizerName: event.organizer.name,
+      organizerEmail: event.organizer.email,
+      organizerPhone: event.organizer.phone,
+      website: event.organizer.website,
+      tags: event.tags,
+      images: event.media.gallery,
+      requiresRegistration: event.registration.required,
+      status: event.status,
+      submittedAt: event.createdAt,
+      approvedAt: event.approvedAt,
+      rejectedAt: event.rejectedAt,
+      rejectionReason: event.rejectionReason
+    })) || []
 
     return NextResponse.json({
       success: true,
       data: {
-        events: filteredEvents,
-        total: filteredEvents.length
+        events: transformedEvents,
+        total: result.total || 0,
+        limit,
+        skip
       }
     })
 
@@ -179,77 +186,81 @@ export async function POST(request: NextRequest) {
     }
 
     // Optional: Check for authentication (events can be submitted by anonymous users)
-    let submittedBy: string | undefined
+    let organizerId: string = 'anonymous'
     const authHeader = request.headers.get('authorization')
     const accessToken = extractTokenFromHeader(authHeader)
 
     if (accessToken) {
       const tokenResult = verifyAccessToken(accessToken)
       if (tokenResult.valid) {
-        submittedBy = tokenResult.payload.userId
+        organizerId = tokenResult.payload.userId
       }
     }
 
-    // Create event
-    const eventId = `event_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-    const newEvent: Event = {
-      id: eventId,
+    // Create event using service
+    const result = await eventService.createEvent({
+      organizerId,
       title: title.trim(),
       category,
       description: description.trim(),
       longDescription: longDescription?.trim() || '',
-      date,
+      startDate: date,
+      endDate: date, // For now, single day events
       startTime,
       endTime: endTime || '',
       location: location.trim(),
       address: address?.trim() || '',
-      maxAttendees: maxAttendees || '',
-      ticketPrice: ticketPrice || '',
-      isFree: isFree ?? true,
+      maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined,
+      pricing: {
+        type: isFree ? 'free' : 'paid',
+        amount: isFree ? undefined : parseFloat(ticketPrice || '0'),
+        currency: 'KES'
+      },
       organizerName: organizerName.trim(),
       organizerEmail: organizerEmail.toLowerCase(),
       organizerPhone: organizerPhone?.trim() || '',
-      website: website?.trim() || '',
+      website: website?.trim(),
       tags: tags || [],
       images: images || [],
       requiresRegistration: requiresRegistration ?? false,
-      ageRestriction: ageRestriction?.trim() || '',
-      specialRequirements: specialRequirements?.trim() || '',
-      status: 'pending_approval',
-      submittedAt: new Date().toISOString(),
-      submittedBy
-    }
+      ageRestriction: ageRestriction?.trim(),
+      specialRequirements: specialRequirements?.trim()
+    })
 
-    // Store event
-    global.eventsStorage.push(newEvent)
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error || 'Failed to create event' },
+        { status: 400 }
+      )
+    }
 
     // Log security event
     securityAudit.logEvent(
-      'suspicious_activity',
+      'event_creation',
       'low',
       'New event submitted for approval',
       {
-        eventId,
-        title: newEvent.title,
-        category: newEvent.category,
-        organizerEmail: newEvent.organizerEmail
+        eventId: result.eventId,
+        title: title.trim(),
+        category,
+        organizerEmail: organizerEmail.toLowerCase()
       },
-      submittedBy,
+      organizerId,
       clientIP,
       userAgent
     )
 
     console.log('Event submitted successfully:', {
-      eventId,
-      title: newEvent.title,
-      submittedBy,
-      submittedAt: newEvent.submittedAt
+      eventId: result.eventId,
+      title: title.trim(),
+      organizerId,
+      submittedAt: new Date().toISOString()
     })
 
     return NextResponse.json({
       success: true,
       data: {
-        eventId,
+        eventId: result.eventId,
         status: 'pending_approval',
         message: 'Event submitted successfully and is pending approval'
       }
