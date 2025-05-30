@@ -2,32 +2,24 @@
 
 import Image from "next/image"
 import {
-  Search,
   MapPin,
   Calendar,
   Star,
   Users,
   TrendingUp,
-  Clock,
-  Coffee,
-  Dumbbell,
-  Utensils,
-  ShoppingBag,
-  Briefcase,
-  Music,
-  Palette,
-  Stethoscope,
-
+  Clock
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AuthHeader } from "@/components/auth-header"
 import { Footer } from "@/components/footer"
+import { AdvancedSearchInput } from "@/components/search/advanced-search-input"
+import { useAdvancedSearch } from "@/hooks/use-advanced-search"
+import { CategoryBrowser } from "@/components/category-browser"
 import Link from "next/link"
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel"
+import { useRouter } from "next/navigation"
 
 const allFeaturedBusinesses = [
   {
@@ -324,22 +316,27 @@ const allFeaturedEvents = [
 ]
 
 export default function HomePage() {
-  const categories = [
-    {
-      name: "Restaurants",
-      icon: Utensils,
-      count: "240+",
-      color: "bg-red-500",
-      description: "Local dining experiences",
-    },
-    { name: "Cafés", icon: Coffee, count: "85+", color: "bg-amber-500", description: "Coffee shops & bakeries" },
-    { name: "Fitness", icon: Dumbbell, count: "45+", color: "bg-green-500", description: "Gyms & wellness centers" },
-    { name: "Shopping", icon: ShoppingBag, count: "180+", color: "bg-purple-500", description: "Retail & boutiques" },
-    { name: "Services", icon: Briefcase, count: "320+", color: "bg-blue-500", description: "Professional services" },
-    { name: "Healthcare", icon: Stethoscope, count: "95+", color: "bg-teal-500", description: "Medical & wellness" },
-    { name: "Entertainment", icon: Music, count: "65+", color: "bg-pink-500", description: "Fun & recreation" },
-    { name: "Arts", icon: Palette, count: "40+", color: "bg-indigo-500", description: "Creative & cultural" },
-  ]
+  const router = useRouter()
+  const { suggestions, isLoading, recentSearches, popularSearches } = useAdvancedSearch({
+    enableSuggestions: true,
+    enableCache: true,
+    debounceMs: 300
+  })
+
+  // Handle search from hero section
+  const handleHeroSearch = (query: string, filters?: { location?: string; category?: string; type?: string }) => {
+    // Navigate to search results page with query
+    const searchParams = new URLSearchParams({
+      q: query,
+      ...(filters?.location && { location: filters.location }),
+      ...(filters?.category && { category: filters.category }),
+      ...(filters?.type && { type: filters.type })
+    })
+
+    router.push(`/search?${searchParams.toString()}`)
+  }
+
+
 
   const MAX_FEATURED_ITEMS = 12;
 
@@ -362,30 +359,26 @@ export default function HomePage() {
             neighborhood.
           </p>
 
-          {/* Search Bar */}
-          <div className="max-w-3xl mx-auto mb-12">
-            <div className="flex flex-col md:flex-row gap-3 p-3 bg-white rounded-2xl shadow-2xl border border-gray-100 backdrop-blur">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  placeholder="Search businesses, events, or services..."
-                  className="pl-12 border-0 focus-visible:ring-0 text-lg h-14 bg-transparent"
-                />
-              </div>
-              <div className="flex-1 relative">
-                <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  placeholder="Enter your location..."
-                  className="pl-12 border-0 focus-visible:ring-0 text-lg h-14 bg-transparent"
-                />
-              </div>
-              <Button
-                size="lg"
-                className="px-8 h-14 bg-[#0A558C] hover:bg-[#084b7c] text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                Search
-              </Button>
-            </div>
+          {/* Advanced Search Bar */}
+          <div className="max-w-4xl mx-auto mb-12">
+            <AdvancedSearchInput
+              placeholder="Search businesses, events, or services..."
+              onSearch={handleHeroSearch}
+              showLocationInput={true}
+              suggestions={suggestions.map((s, index) => ({
+                id: `suggestion-${index}`,
+                text: s.text,
+                type: s.type,
+                count: s.count,
+                popularity: s.popularity,
+                category: s.category,
+                location: s.location
+              }))}
+              isLoading={isLoading}
+              recentSearches={recentSearches}
+              popularSearches={popularSearches.map(s => s.text)}
+              className="w-full"
+            />
           </div>
 
           {/* Quick Stats */}
@@ -406,47 +399,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Categories Carousel Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4 text-gray-900">Browse by Category</h3>
-            <p className="text-lg text-gray-600">Explore local businesses and services by category</p>
-          </div>
-
-          <div className="relative max-w-6xl mx-auto">
-            <Carousel opts={{ align: 'start', slidesToScroll: 1, dragFree: true, loop: true }}>
-              <CarouselContent className="pl-0">
-                {categories.map((category, index) => {
-                  const IconComponent = category.icon
-                  return (
-                    <CarouselItem key={index} className="basis-1/4 px-3">
-                      <Card className="group cursor-pointer hover:shadow-2xl transition-all duration-300 border-0 shadow-lg bg-white/90 backdrop-blur h-full">
-                        <CardContent className="p-6 text-center">
-                          <div
-                            className={`w-16 h-16 ${category.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}
-                          >
-                            <IconComponent className="h-8 w-8 text-white" />
-                          </div>
-                          <h4 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#0A558C] transition-colors">
-                            {category.name}
-                          </h4>
-                          <p className="text-sm text-gray-600 mb-3">{category.description}</p>
-                          <Badge variant="secondary" className="bg-blue-100 text-[#0A558C] font-semibold">
-                            {category.count}
-                          </Badge>
-                        </CardContent>
-                      </Card>
-                    </CarouselItem>
-                  )
-                })}
-              </CarouselContent>
-              <CarouselPrevious className="left-4" />
-              <CarouselNext className="right-4" />
-            </Carousel>
-          </div>
-        </div>
-      </section>
+      {/* Enhanced Categories Section */}
+      <CategoryBrowser
+        onCategorySelect={(category) => {
+          // Handle category selection - navigate to search with category filter and correct type
+          router.push(`/search?category=${category.id}&type=${category.type}`)
+        }}
+      />
 
       {/* Featured Businesses & Events Section */}
       <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">

@@ -18,6 +18,8 @@
     "production:deploy": "npm run validate:env && npm run production:build && npm run setup:production-db",
     "backup:db": "tsx scripts/backup-database.ts",
     "restore:db": "tsx scripts/restore-database.ts",
+    "build-search-index": "tsx scripts/build-search-index.ts",
+    "rebuild-search-index": "tsx scripts/build-search-index.ts --rebuild-all",
     "health:check": "curl -f http://localhost:3000/health || exit 1",
     "logs:view": "pm2 logs mtaani",
     "logs:clear": "pm2 flush mtaani"
