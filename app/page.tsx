@@ -6,19 +6,15 @@ import {
   Calendar,
   Star,
   Users,
-  TrendingUp,
-  Clock
+  TrendingUp
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AuthHeader } from "@/components/auth-header"
 import { Footer } from "@/components/footer"
 import { AdvancedSearchInput } from "@/components/search/advanced-search-input"
 import { useAdvancedSearch } from "@/hooks/use-advanced-search"
 import { CategoryBrowser } from "@/components/category-browser"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 const allFeaturedBusinesses = [
@@ -180,6 +176,7 @@ const allFeaturedEvents = [
     featured: true,
     type: "event",
     price: "Free",
+    description: "A vibrant summer music festival with live bands and food trucks.",
   },
   {
     id: 2,
@@ -192,6 +189,7 @@ const allFeaturedEvents = [
     featured: true,
     type: "event",
     price: "Free",
+    description: "Experience the latest works from local artists at the gallery opening.",
   },
   {
     id: 3,
@@ -204,6 +202,7 @@ const allFeaturedEvents = [
     featured: true,
     type: "event",
     price: "Free Entry",
+    description: "Savor delicious dishes from the city's best food trucks.",
   },
   {
     id: 4,
@@ -216,6 +215,7 @@ const allFeaturedEvents = [
     featured: true,
     type: "event",
     price: "$20",
+    description: "Enjoy a selection of fine wines and gourmet appetizers.",
   },
   {
     id: 5,
@@ -228,6 +228,7 @@ const allFeaturedEvents = [
     featured: true,
     type: "event",
     price: "Free",
+    description: "Join us for a fun run to support local charities.",
   },
   {
     id: 6,
@@ -240,6 +241,7 @@ const allFeaturedEvents = [
     featured: true,
     type: "event",
     price: "Free",
+    description: "Watch a classic movie under the stars with your neighbors.",
   },
   {
     id: 7,
@@ -252,6 +254,7 @@ const allFeaturedEvents = [
     featured: true,
     type: "event",
     price: "Varies",
+    description: "Indulge in a variety of cuisines at the annual food festival.",
   },
   {
     id: 8,
@@ -264,6 +267,7 @@ const allFeaturedEvents = [
     featured: true,
     type: "event",
     price: "Free",
+    description: "Explore local art and meet the artists in a beautiful park setting.",
   },
   {
     id: 9,
@@ -276,6 +280,7 @@ const allFeaturedEvents = [
     featured: true,
     type: "event",
     price: "$30",
+    description: "Enjoy a live performance by a popular band at the city arena.",
   },
   {
     id: 10,
@@ -288,6 +293,7 @@ const allFeaturedEvents = [
     featured: true,
     type: "event",
     price: "$25",
+    description: "Experience Shakespeare's classic play in a charming outdoor setting.",
   },
   {
     id: 11,
@@ -300,6 +306,7 @@ const allFeaturedEvents = [
     featured: true,
     type: "event",
     price: "Free",
+    description: "Discover stunning photographs by local and national photographers.",
   },
   {
     id: 12,
@@ -312,6 +319,7 @@ const allFeaturedEvents = [
     featured: true,
     type: "event",
     price: "$50",
+    description: "Learn to cook authentic Italian dishes with a professional chef.",
   },
 ]
 
@@ -336,12 +344,37 @@ export default function HomePage() {
     router.push(`/search?${searchParams.toString()}`)
   }
 
-
-
-  const MAX_FEATURED_ITEMS = 12;
-
-  const featuredBusinesses = allFeaturedBusinesses.slice(0, MAX_FEATURED_ITEMS);
-  const featuredEvents = allFeaturedEvents.slice(0, MAX_FEATURED_ITEMS);
+  const featuredBusinesses = allFeaturedBusinesses.length >= 25 ? allFeaturedBusinesses.slice(0, 25) : [
+    ...allFeaturedBusinesses,
+    ...Array.from({ length: 25 - allFeaturedBusinesses.length }, (_, i) => ({
+      id: 1000 + i,
+      name: `Business ${i + 1 + allFeaturedBusinesses.length}`,
+      category: "Business",
+      rating: 4.5,
+      reviews: 0,
+      image: "/placeholder.svg?height=200&width=300",
+      location: "-",
+      description: "Featured business placeholder.",
+      featured: true,
+      type: "business",
+    }))
+  ]
+  const featuredEvents = allFeaturedEvents.length >= 25 ? allFeaturedEvents.slice(0, 25) : [
+    ...allFeaturedEvents,
+    ...Array.from({ length: 25 - allFeaturedEvents.length }, (_, i) => ({
+      id: 2000 + i,
+      title: `Event ${i + 1 + allFeaturedEvents.length}`,
+      date: "TBD",
+      time: "TBD",
+      location: "-",
+      attendees: 0,
+      image: "/placeholder.svg?height=150&width=200",
+      featured: true,
+      type: "event",
+      price: "Free",
+      description: "Featured event placeholder."
+    }))
+  ]
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -402,15 +435,15 @@ export default function HomePage() {
       {/* Enhanced Categories Section */}
       <CategoryBrowser
         onCategorySelect={(category) => {
-          // Handle category selection - navigate to search with category filter and correct type
           router.push(`/search?category=${category.id}&type=${category.type}`)
         }}
+        className="mb-8" // Reduced margin below for tighter section transition
       />
 
       {/* Featured Businesses & Events Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+      <section className="py-12 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <div className="text-center mb-8">
             <h3 className="text-3xl font-bold mb-4 text-gray-900">Featured This Week</h3>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
               Discover premium local businesses and exciting upcoming events handpicked by our community
@@ -438,60 +471,24 @@ export default function HomePage() {
             </div>
 
             <TabsContent value="businesses">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
                 {featuredBusinesses.map((business) => (
-                  <Card
-                    key={business.id}
-                    className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg bg-white/80 backdrop-blur relative"
-                  >
-                    <div className="absolute top-4 left-4 z-10">
-                      <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg">
-                        ⭐ Featured
-                      </Badge>
+                  <Card key={business.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-2 md:p-3 text-xs md:text-sm rounded-lg">
+                    <div className="aspect-[4/3] relative overflow-hidden rounded mb-1">
+                      <Image src={business.image || "/placeholder.svg"} alt={business.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                     </div>
-                    <div className="aspect-video relative overflow-hidden">
-                      <Image
-                        src={business.image || "/placeholder.svg"}
-                        alt={business.name}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-xl group-hover:text-[#0A558C] transition-colors duration-200 mb-2">
-                            {business.name}
-                          </CardTitle>
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <MapPin className="h-4 w-4 text-[#0A558C]" />
-                            <span className="text-sm font-medium">{business.location}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1 rounded-full">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-semibold text-gray-900">{business.rating}</span>
-                        </div>
+                    <CardHeader className="pb-1 px-0">
+                      <CardTitle className="text-xs md:text-sm font-semibold group-hover:text-[#0A558C] mb-0.5 truncate">{business.name}</CardTitle>
+                      <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-600">
+                        <MapPin className="h-3 w-3 text-[#0A558C]" />
+                        <span>{business.location}</span>
                       </div>
                     </CardHeader>
-
-                    <CardContent>
-                      <CardDescription className="mb-4 text-gray-600 leading-relaxed">
-                        {business.description}
-                      </CardDescription>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500 font-medium">{business.reviews} reviews</span>
-                        <Link href={`/businesses/${business.id}`}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-blue-200 text-[#0A558C] hover:bg-blue-50 hover:border-blue-300"
-                          >
-                            View Details
-                          </Button>
-                        </Link>
+                    <CardContent className="px-0 pt-0 pb-1">
+                      <CardDescription className="mb-1 text-[10px] md:text-xs text-gray-600 line-clamp-2">{business.description}</CardDescription>
+                      <div className="flex items-center justify-between text-[10px] md:text-xs">
+                        <span>{business.reviews} reviews</span>
+                        <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />{business.rating}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -500,65 +497,26 @@ export default function HomePage() {
             </TabsContent>
 
             <TabsContent value="events">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
                 {featuredEvents.map((event) => (
-                  <Card
-                    key={event.id}
-                    className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg bg-white/80 backdrop-blur relative"
-                  >
-                    <div className="absolute top-4 left-4 z-10">
-                      <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg">
-                        🎉 Featured
-                      </Badge>
+                  <Card key={event.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-2 md:p-3 text-xs md:text-sm rounded-lg">
+                    <div className="aspect-[4/3] relative overflow-hidden rounded mb-1">
+                      <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                     </div>
-                    <div className="aspect-video relative overflow-hidden">
-                      <Image
-                        src={event.image || "/placeholder.svg"}
-                        alt={event.title}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    </div>
-
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-xl group-hover:text-[#0A558C] transition-colors duration-200 mb-3">
-                        {event.title}
-                      </CardTitle>
-                      <div className="flex items-center gap-6 text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-[#0A558C]" />
-                          <span className="text-sm font-medium">{event.date}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-[#0A558C]" />
-                          <span className="text-sm font-medium">{event.time}</span>
-                        </div>
+                    <CardHeader className="pb-1 px-0">
+                      <CardTitle className="text-xs md:text-sm font-semibold group-hover:text-[#0A558C] mb-0.5 truncate">{event.title}</CardTitle>
+                      <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-600">
+                        <Calendar className="h-3 w-3 text-[#0A558C]" />
+                        <span>{event.date}</span>
                       </div>
                     </CardHeader>
-
-                    <CardContent>
-                      <div className="flex items-center gap-2 text-gray-600 mb-4">
-                        <MapPin className="h-4 w-4 text-[#0A558C]" />
-                        <span className="text-sm font-medium">{event.location}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm text-gray-600 font-medium">{event.attendees} attending</span>
-                        </div>
-                        <div className="text-sm font-semibold text-[#0A558C]">{event.price}</div>
-                      </div>
-                      <div className="mt-4">
-                        <Link href={`/events/${event.id}`}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full border-blue-200 text-[#0A558C] hover:bg-blue-50 hover:border-blue-300"
-                          >
-                            Learn More
-                          </Button>
-                        </Link>
+                    <CardContent className="px-0 pt-0 pb-1">
+                      {event.description && (
+                        <CardDescription className="mb-1 text-[10px] md:text-xs text-gray-600 line-clamp-2">{event.description}</CardDescription>
+                      )}
+                      <div className="flex items-center justify-between text-[10px] md:text-xs">
+                        <span className="flex items-center gap-1"><Users className="h-3 w-3 text-gray-400" />{event.attendees} attending</span>
+                        <span className="font-semibold text-[#0A558C]">{event.price}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -599,56 +557,24 @@ export default function HomePage() {
             </div>
 
             <TabsContent value="businesses">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
                 {featuredBusinesses.map((business) => (
-                  <Card
-                    key={business.id}
-                    className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg bg-white/80 backdrop-blur"
-                  >
-                    <div className="aspect-video relative overflow-hidden">
-                      <Image
-                        src={business.image || "/placeholder.svg"}
-                        alt={business.name}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <Badge className="absolute top-4 left-4 bg-white/95 text-gray-800 font-medium shadow-lg border-0 hover:bg-white">
-                        {business.category}
-                      </Badge>
+                  <Card key={business.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-2 md:p-3 text-xs md:text-sm rounded-lg">
+                    <div className="aspect-[4/3] relative overflow-hidden rounded mb-1">
+                      <Image src={business.image || "/placeholder.svg"} alt={business.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                     </div>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-xl group-hover:text-[#0A558C] transition-colors duration-200 mb-2">
-                            {business.name}
-                          </CardTitle>
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <MapPin className="h-4 w-4 text-[#0A558C]" />
-                            <span className="text-sm font-medium">{business.location}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1 rounded-full">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-semibold text-gray-900">{business.rating}</span>
-                        </div>
+                    <CardHeader className="pb-1 px-0">
+                      <CardTitle className="text-xs md:text-sm font-semibold group-hover:text-[#0A558C] mb-0.5 truncate">{business.name}</CardTitle>
+                      <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-600">
+                        <MapPin className="h-3 w-3 text-[#0A558C]" />
+                        <span>{business.location}</span>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <CardDescription className="mb-4 text-gray-600 leading-relaxed">
-                        {business.description}
-                      </CardDescription>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-500 font-medium">{business.reviews} reviews</span>
-                        <Link href={`/businesses/${business.id}`}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-blue-200 text-[#0A558C] hover:bg-blue-50 hover:border-blue-300"
-                          >
-                            View Details
-                          </Button>
-                        </Link>
+                    <CardContent className="px-0 pt-0 pb-1">
+                      <CardDescription className="mb-1 text-[10px] md:text-xs text-gray-600 line-clamp-2">{business.description}</CardDescription>
+                      <div className="flex items-center justify-between text-[10px] md:text-xs">
+                        <span>{business.reviews} reviews</span>
+                        <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />{business.rating}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -657,58 +583,26 @@ export default function HomePage() {
             </TabsContent>
 
             <TabsContent value="events">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
                 {featuredEvents.map((event) => (
-                  <Card
-                    key={event.id}
-                    className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg bg-white/80 backdrop-blur"
-                  >
-                    <div className="aspect-video relative overflow-hidden">
-                      <Image
-                        src={event.image || "/placeholder.svg"}
-                        alt={event.title}
-                        fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <Card key={event.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-2 md:p-3 text-xs md:text-sm rounded-lg">
+                    <div className="aspect-[4/3] relative overflow-hidden rounded mb-1">
+                      <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                     </div>
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-xl group-hover:text-[#0A558C] transition-colors duration-200 mb-3">
-                        {event.title}
-                      </CardTitle>
-                      <div className="flex items-center gap-6 text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-[#0A558C]" />
-                          <span className="text-sm font-medium">{event.date}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-[#0A558C]" />
-                          <span className="text-sm font-medium">{event.time}</span>
-                        </div>
+                    <CardHeader className="pb-1 px-0">
+                      <CardTitle className="text-xs md:text-sm font-semibold group-hover:text-[#0A558C] mb-0.5 truncate">{event.title}</CardTitle>
+                      <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-600">
+                        <Calendar className="h-3 w-3 text-[#0A558C]" />
+                        <span>{event.date}</span>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center gap-2 text-gray-600 mb-4">
-                        <MapPin className="h-4 w-4 text-[#0A558C]" />
-                        <span className="text-sm font-medium">{event.location}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-gray-400" />
-                          <span className="text-sm text-gray-600 font-medium">{event.attendees} attending</span>
-                        </div>
-                        <div className="text-sm font-semibold text-[#0A558C]">{event.price}</div>
-                      </div>
-                      <div className="mt-4">
-                        <Link href={`/events/${event.id}`}>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full border-blue-200 text-[#0A558C] hover:bg-blue-50 hover:border-blue-300"
-                          >
-                            Learn More
-                          </Button>
-                        </Link>
+                    <CardContent className="px-0 pt-0 pb-1">
+                      {event.description && (
+                        <CardDescription className="mb-1 text-[10px] md:text-xs text-gray-600 line-clamp-2">{event.description}</CardDescription>
+                      )}
+                      <div className="flex items-center justify-between text-[10px] md:text-xs">
+                        <span className="flex items-center gap-1"><Users className="h-3 w-3 text-gray-400" />{event.attendees} attending</span>
+                        <span className="font-semibold text-[#0A558C]">{event.price}</span>
                       </div>
                     </CardContent>
                   </Card>

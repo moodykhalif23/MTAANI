@@ -153,6 +153,19 @@ export default function EventsPage() {
     setUserLocation(null)
   }
 
+  const [page, setPage] = useState(1)
+  const displayedEvents = useMemo(() => events.slice(0, page * 25), [events, page])
+  const displayedEventsWithDistance = useMemo(() => {
+    if (userLocation) {
+      return displayedEvents.map((event) => ({
+        ...event,
+        calculatedDistance: typeof event.calculatedDistance === 'number' ? event.calculatedDistance : Math.random() * 10 + 0.1
+      }))
+    }
+    return displayedEvents.map((event) => ({ ...event, calculatedDistance: null }))
+  }, [displayedEvents, userLocation])
+  const loadMoreEvents = () => setPage((prev) => prev + 1)
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       <AuthHeader />
@@ -405,96 +418,34 @@ export default function EventsPage() {
                 <h3 className="text-xl font-semibold mb-2 text-gray-900">Error loading events</h3>
                 <p className="text-gray-600">{error}</p>
               </div>
-            ) : filteredEvents.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {sortEventsByDistance(filteredEvents).map((event) => (
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
+              {sortEventsByDistance(displayedEventsWithDistance).slice(0, 25).map((event) => (
                 <Card
                   key={event.id}
-                  className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg bg-white/80 backdrop-blur"
+                  className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-2 md:p-3 text-xs md:text-sm rounded-lg"
                 >
-                  <div className="aspect-video relative overflow-hidden">
-                    <Image
-                      src={event.image || "/placeholder.svg"}
-                      alt={event.title}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute top-4 left-4">
-                      <Badge variant="secondary" className="bg-white/95 text-gray-800 shadow-lg">
-                        {event.category}
-                      </Badge>
-                    </div>
-                    <div className="absolute top-4 right-4 flex gap-2">
-                      {userLocation && event.calculatedDistance !== null && (
-                        <Badge className="bg-green-500 text-white shadow-lg">
-                          {formatDistance(event.calculatedDistance)}
-                        </Badge>
-                      )}
-                      {event.featured && (
-                        <Badge className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg">
-                          Featured
-                        </Badge>
-                      )}
-                    </div>
+                  <div className="aspect-[4/3] relative overflow-hidden rounded mb-1">
+                    <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                   </div>
-
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg group-hover:text-blue-600 transition-colors duration-200 mb-3">
-                      {event.title}
-                    </CardTitle>
-                    <div className="flex items-center gap-6 text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-blue-500" />
-                        <span className="text-sm font-medium">{event.date}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-blue-500" />
-                        <span className="text-sm font-medium">{event.time.split(" - ")[0]}</span>
-                      </div>
+                  <CardHeader className="pb-1 px-0">
+                    <CardTitle className="text-xs md:text-sm font-semibold group-hover:text-[#0A558C] mb-0.5 truncate">{event.title}</CardTitle>
+                    <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-600">
+                      <Calendar className="h-3 w-3 text-[#0A558C]" />
+                      <span>{event.date}</span>
                     </div>
                   </CardHeader>
-
-                  <CardContent className="space-y-3">
-                    <CardDescription className="line-clamp-2 text-gray-600 leading-relaxed">
-                      {event.description}
-                    </CardDescription>
-
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <MapPin className="h-4 w-4 text-blue-500" />
-                      <span className="text-sm font-medium truncate">{event.location}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Users className="h-4 w-4 text-blue-500" />
-                        {event.attendees} attending
-                      </div>
-                      <div className="text-sm font-semibold text-blue-600">{event.price}</div>
-                    </div>
-
-                    <div className="flex gap-3 pt-2">
-                      <Button
-                        size="sm"
-                        className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                      >
-                        Register
-                      </Button>
-                      <Link href={`/events/${event.id}`}>
-                        <Button variant="outline" size="sm" className="border-blue-200 text-blue-600 hover:bg-blue-50">
-                          Details
-                        </Button>
-                      </Link>
+                  <CardContent className="px-0 pt-0 pb-1">
+                    {event.description && (
+                      <CardDescription className="mb-1 text-[10px] md:text-xs text-gray-600 line-clamp-2">{event.description}</CardDescription>
+                    )}
+                    <div className="flex items-center justify-between text-[10px] md:text-xs">
+                      <span className="flex items-center gap-1"><Users className="h-3 w-3 text-gray-400" />{event.attendees} attending</span>
+                      <span className="font-semibold text-[#0A558C]">{event.price}</span>
                     </div>
                   </CardContent>
                 </Card>
               ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2 text-gray-900">No events found</h3>
-                <p className="text-gray-600">Try adjusting your search criteria</p>
               </div>
             )}
           </TabsContent>
@@ -506,6 +457,7 @@ export default function EventsPage() {
             variant="outline"
             size="lg"
             className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+            onClick={loadMoreEvents}
           >
             Load More Events
           </Button>

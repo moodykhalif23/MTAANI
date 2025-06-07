@@ -163,7 +163,7 @@ export default function SearchPage() {
         </div>
 
         {/* Search Results */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {/* Results */}
           <div className="lg:col-span-3">
             {isLoading && !results.length ? (
@@ -298,10 +298,10 @@ function SearchResultCard({ result }: { result: SearchResult }) {
 
   return (
     <Card className="hover:shadow-lg transition-shadow duration-200">
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <div className="flex gap-4">
           {/* Image placeholder */}
-          <div className="w-24 h-24 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
             <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
               {isEvent ? (
                 <Clock className="h-8 w-8 text-blue-600" />
@@ -315,10 +315,10 @@ function SearchResultCard({ result }: { result: SearchResult }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between mb-2">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                <h3 className="text-md sm:text-lg font-semibold text-gray-900 mb-1">
                   {result.title}
                 </h3>
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mb-2">
                   <Badge variant="secondary">{result.category}</Badge>
                   {result.verified && (
                     <Badge variant="default" className="bg-green-100 text-green-800">
@@ -334,18 +334,18 @@ function SearchResultCard({ result }: { result: SearchResult }) {
                 </div>
               </div>
               {result.distance && (
-                <div className="text-sm text-gray-500">
+                <div className="text-xs sm:text-sm text-gray-500">
                   {result.distance.toFixed(1)} km away
                 </div>
               )}
             </div>
 
-            <p className="text-gray-700 mb-3 line-clamp-2">
+            <p className="text-gray-700 mb-3 line-clamp-2 text-sm sm:text-base">
               {result.description}
             </p>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
                 <MapPin className="h-4 w-4" />
                 <span>{result.location.town}, {result.location.county}</span>
               </div>

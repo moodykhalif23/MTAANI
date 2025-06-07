@@ -48,6 +48,7 @@ export function ReviewSystem({ reviews, averageRating, totalReviews }: ReviewSys
   })
   const [hoveredRating, setHoveredRating] = useState(0)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(5)
 
   const ratingDistribution = [
     { stars: 5, count: 124, percentage: 65 },
@@ -63,6 +64,8 @@ export function ReviewSystem({ reviews, averageRating, totalReviews }: ReviewSys
     setIsDialogOpen(false)
     setNewReview({ rating: 0, comment: "" })
   }
+
+  const handleLoadMore = () => setVisibleCount((c) => c + 5)
 
   const renderStars = (rating: number, interactive = false, size = "w-4 h-4") => {
     return Array.from({ length: 5 }).map((_, i) => (
@@ -153,7 +156,7 @@ export function ReviewSystem({ reviews, averageRating, totalReviews }: ReviewSys
       <div className="space-y-4">
         <h3 className="text-xl font-semibold">Customer Reviews</h3>
 
-        {reviews.map((review) => (
+        {reviews.slice(0, visibleCount).map((review) => (
           <Card key={review.id}>
             <CardContent className="pt-6">
               <div className="flex gap-4">
@@ -217,7 +220,9 @@ export function ReviewSystem({ reviews, averageRating, totalReviews }: ReviewSys
       </div>
 
       <div className="text-center">
-        <Button variant="outline">Load More Reviews</Button>
+        <Button variant="outline" onClick={handleLoadMore} disabled={visibleCount >= reviews.length}>
+          {visibleCount >= reviews.length ? "No More Reviews" : "Load More Reviews"}
+        </Button>
       </div>
     </div>
   )

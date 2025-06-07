@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react"
 import Image from "next/image"
-import { Search, MapPin, Filter, Star, Clock, Phone, Navigation } from "lucide-react"
+import { Search, MapPin, Filter, Star, Navigation } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,12 +13,11 @@ import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { LocationButton } from "@/components/location-button"
 import { OfflineIndicator } from "@/components/offline-indicator"
-import { addDistanceToItems, formatDistance } from "@/lib/location-utils"
+import { addDistanceToItems } from "@/lib/location-utils"
 import { offlineCache } from "@/lib/offline-cache"
 import { useOffline } from "@/hooks/use-offline"
 import { AuthHeader } from "@/components/auth-header"
 import { Footer } from "@/components/footer"
-import Link from "next/link"
 
 interface Business {
   id: number
@@ -147,6 +146,16 @@ export default function BusinessesPage() {
       priceRange: "$",
     },
   ], [])
+
+  const [page, setPage] = useState(1)
+  const displayedBusinesses = useMemo(() => businesses.slice(0, page * 25), [businesses, page])
+  const displayedBusinessesWithDistance = useMemo(() => {
+    if (userLocation) {
+      return addDistanceToItems(displayedBusinesses, userLocation.lat, userLocation.lng)
+    }
+    return displayedBusinesses.map((business) => ({ ...business, calculatedDistance: null }))
+  }, [displayedBusinesses, userLocation])
+  const loadMoreBusinesses = () => setPage((prev) => prev + 1)
 
   const loadBusinesses = useCallback(async () => {
     try {
@@ -443,7 +452,7 @@ export default function BusinessesPage() {
 
         {/* Loading State */}
         {loading && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-5 gap-4">
             {[...Array(6)].map((_, i) => (
               <Card key={i} className="overflow-hidden">
                 <div className="aspect-video bg-gray-200 animate-pulse" />
@@ -464,96 +473,27 @@ export default function BusinessesPage() {
 
         {/* Business Grid */}
         {!loading && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-            {sortedBusinesses.map((business) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
+            {displayedBusinessesWithDistance.slice(0, 25).map((business) => (
               <Card
                 key={business.id}
-                className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer border-0 shadow-lg bg-white/80 backdrop-blur"
+                className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-2 md:p-3 text-xs md:text-sm rounded-lg"
               >
-                <div className="aspect-video relative overflow-hidden">
-                  <Image
-                    src={business.image || "/placeholder.svg"}
-                    alt={business.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <Badge className="bg-white/95 text-gray-800 font-medium shadow-lg border-0">
-                      {business.category}
-                    </Badge>
-                    <Badge variant="secondary" className="bg-white/95 text-gray-800 shadow-lg">
-                      {business.priceRange}
-                    </Badge>
-                  </div>
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-green-500 text-white shadow-lg">
-                      {userLocation && business.calculatedDistance !== null
-                        ? formatDistance(business.calculatedDistance)
-                        : business.distance}
-                    </Badge>
-                  </div>
+                <div className="aspect-[4/3] relative overflow-hidden rounded mb-1">
+                  <Image src={business.image || "/placeholder.svg"} alt={business.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                 </div>
-
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-xl group-hover:text-blue-600 transition-colors duration-200 mb-2">
-                        {business.name}
-                      </CardTitle>
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <MapPin className="h-4 w-4 text-blue-500" />
-                        <span className="text-sm font-medium">{business.location}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1 rounded-full ml-2">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-semibold text-gray-900">{business.rating}</span>
-                    </div>
+                <CardHeader className="pb-1 px-0">
+                  <CardTitle className="text-xs md:text-sm font-semibold group-hover:text-[#0A558C] mb-0.5 truncate">{business.name}</CardTitle>
+                  <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-600">
+                    <MapPin className="h-3 w-3 text-[#0A558C]" />
+                    <span>{business.location}</span>
                   </div>
                 </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <CardDescription className="line-clamp-2 text-gray-600 leading-relaxed">
-                    {business.description}
-                  </CardDescription>
-
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Clock className="h-4 w-4 text-blue-500" />
-                    <span className="truncate">{business.hours}</span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1">
-                    {business.tags.slice(0, 3).map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs border-gray-300 text-gray-700">
-                        {tag}
-                      </Badge>
-                    ))}
-                    {business.tags.length > 3 && (
-                      <Badge variant="outline" className="text-xs border-gray-300 text-gray-700">
-                        +{business.tags.length - 3}
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="text-sm text-gray-600 font-medium">{business.reviews} reviews</span>
-                    <div className="flex gap-2">
-                      <a href={`tel:${business.phone}`}>
-                        <Button variant="outline" size="sm" className="border-blue-200 text-blue-600 hover:bg-blue-50">
-                          <Phone className="h-3 w-3 mr-1" />
-                          Call
-                        </Button>
-                      </a>
-                      <Link href={`/businesses/${business.id}`}>
-                        <Button
-                          size="sm"
-                          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                        >
-                          View Details
-                        </Button>
-                      </Link>
-                    </div>
+                <CardContent className="px-0 pt-0 pb-1">
+                  <CardDescription className="mb-1 text-[10px] md:text-xs text-gray-600 line-clamp-2">{business.description}</CardDescription>
+                  <div className="flex items-center justify-between text-[10px] md:text-xs">
+                    <span>{business.reviews} reviews</span>
+                    <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />{business.rating}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -569,6 +509,7 @@ export default function BusinessesPage() {
               size="lg"
               className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
               disabled={!isOnline}
+              onClick={loadMoreBusinesses}
             >
               {isOnline ? "Load More Businesses" : "More content available online"}
             </Button>

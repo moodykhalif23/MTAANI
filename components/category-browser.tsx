@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   Utensils,
@@ -15,11 +15,6 @@ import {
   GraduationCap,
   Smartphone,
   ArrowRight,
-  Sparkles,
-  MapPin,
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
   PartyPopper,
   Trophy,
   Heart,
@@ -31,12 +26,10 @@ import {
   Hammer,
   Zap,
   Baby,
-  PawPrint,
-  Globe
+  PawPrint
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 interface Category {
@@ -62,10 +55,7 @@ interface CategoryBrowserProps {
 
 export function CategoryBrowser({ onCategorySelect, className }: CategoryBrowserProps) {
   const router = useRouter()
-  const [activeCategory, setActiveCategory] = useState<string | null>(null)
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
-  const [selectedType, setSelectedType] = useState<'business' | 'event' | 'all'>('all')
+  const [selectedType] = useState<'business' | 'event' | 'all'>('all')
 
   const allCategories: Category[] = [
     // BUSINESS CATEGORIES
@@ -375,369 +365,61 @@ export function CategoryBrowser({ onCategorySelect, className }: CategoryBrowser
     }
   ]
 
-  // Filter categories based on selected type
   const categories = selectedType === 'all'
     ? allCategories
     : allCategories.filter(cat => cat.type === selectedType)
 
-  const itemsPerSlide = 4
-  const totalSlides = Math.ceil(categories.length / itemsPerSlide)
-
-  // Auto-play functionality
-  useEffect(() => {
-    if (!isAutoPlaying) return
-
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % totalSlides)
-    }, 5000) // Change slide every 5 seconds
-
-    return () => clearInterval(interval)
-  }, [isAutoPlaying, totalSlides])
-
   const handleCategoryClick = (category: Category) => {
-    setActiveCategory(category.id)
-
     if (onCategorySelect) {
       onCategorySelect(category)
     } else {
-      // Navigate to search with category filter and correct type
       router.push(`/search?category=${category.id}&type=${category.type}`)
     }
   }
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % totalSlides)
-    setIsAutoPlaying(false)
-  }
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides)
-    setIsAutoPlaying(false)
-  }
-
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index)
-    setIsAutoPlaying(false)
-  }
-
-
-
   return (
-    <section className={cn("py-20 bg-gradient-to-br from-slate-50 via-white to-blue-50", className)}>
-      <div className="container mx-auto px-4">
+    <section className={cn("w-full bg-gradient-to-br from-slate-50 via-white to-blue-50 py-12 md:py-16", className)}>
+      <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <Sparkles className="h-4 w-4" />
-            Explore Categories
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 md:mb-12">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-0">Browse by Category</h2>
+            <p className="text-lg text-gray-600 max-w-2xl">Explore businesses and events by category. Find what matters most to you in your community.</p>
           </div>
-          <h3 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900 leading-tight">
-            Browse by Category
-          </h3>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-8">
-            Discover local businesses, services, and events organized by category. Find exactly what you&apos;re looking for in your community.
-          </p>
-
-          {/* Type Filter Tabs */}
-          <div className="flex justify-center mb-8">
-            <div className="inline-flex bg-white/80 backdrop-blur-sm rounded-2xl p-2 shadow-lg border border-gray-100">
-              <button
-                onClick={() => {
-                  setSelectedType('all')
-                  setCurrentSlide(0)
-                }}
-                className={cn(
-                  "px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2",
-                  selectedType === 'all'
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                )}
-              >
-                <Globe className="h-4 w-4" />
-                All Categories
-                <Badge variant="secondary" className="bg-blue-100 text-blue-700 ml-1">
-                  {allCategories.length}
-                </Badge>
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedType('business')
-                  setCurrentSlide(0)
-                }}
-                className={cn(
-                  "px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2",
-                  selectedType === 'business'
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                )}
-              >
-                <Building className="h-4 w-4" />
-                Businesses
-                <Badge variant="secondary" className="bg-green-100 text-green-700 ml-1">
-                  {allCategories.filter(cat => cat.type === 'business').length}
-                </Badge>
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedType('event')
-                  setCurrentSlide(0)
-                }}
-                className={cn(
-                  "px-6 py-3 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2",
-                  selectedType === 'event'
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                )}
-              >
-                <Calendar className="h-4 w-4" />
-                Events
-                <Badge variant="secondary" className="bg-purple-100 text-purple-700 ml-1">
-                  {allCategories.filter(cat => cat.type === 'event').length}
-                </Badge>
-              </button>
-            </div>
+          <div className="flex gap-3 mt-2 md:mt-0">
+            <Button variant="outline" size="lg" className="border-blue-200 text-blue-700 hover:bg-blue-50">View all businesses</Button>
+            <Button variant="outline" size="lg" className="border-purple-200 text-purple-700 hover:bg-purple-50">View events</Button>
           </div>
         </div>
-
-        {/* Category Carousel */}
-        <div className="relative max-w-7xl mx-auto">
-          {/* Navigation Buttons - Desktop Only */}
-          <Button
-            variant="outline"
-            size="icon"
-            className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border-gray-200 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200"
-            onClick={prevSlide}
-            disabled={currentSlide === 0}
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-
-          <Button
-            variant="outline"
-            size="icon"
-            className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 backdrop-blur-sm border-gray-200 shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200"
-            onClick={nextSlide}
-            disabled={currentSlide === totalSlides - 1}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
-
-          {/* Categories Grid */}
-          <div className="overflow-hidden rounded-2xl">
-            {/* Mobile: Show all categories in a scrollable grid */}
-            <div className="block md:hidden">
-              <div className="grid grid-cols-2 gap-4 p-4 max-h-96 overflow-y-auto">
-                {categories.map((category) => {
-                  const IconComponent = category.icon
-                  const isActive = activeCategory === category.id
-
-                  return (
-                    <Card
-                      key={category.id}
-                      className={cn(
-                        "group cursor-pointer transition-all duration-300 border-0 shadow-md hover:shadow-lg bg-white/90 backdrop-blur-sm relative overflow-hidden",
-                        isActive && "ring-2 ring-blue-500 shadow-lg scale-105",
-                        category.featured && "ring-1 ring-yellow-400/50"
-                      )}
-                      onClick={() => handleCategoryClick(category)}
-                    >
-                      <CardContent className="p-4 text-center relative z-10">
-                        <div className={cn(
-                          "w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg transition-all duration-300 group-hover:scale-110",
-                          `bg-gradient-to-br ${category.gradient}`
-                        )}>
-                          <IconComponent className="h-6 w-6 text-white" />
-                        </div>
-                        <h4 className="text-sm font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
-                          {category.name}
-                        </h4>
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs font-semibold">
-                          {category.count}
-                        </Badge>
-                        {category.trending && (
-                          <div className="absolute top-2 right-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Desktop: Carousel */}
-            <div className="hidden md:block">
-              <div
-                className="flex transition-transform duration-500 ease-in-out"
-                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        {/* Category Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          {categories.slice(0, 8).map((category) => {
+            const IconComponent = category.icon
+            return (
+              <Card
+                key={category.id}
+                className={cn(
+                  "group cursor-pointer border-0 shadow-md hover:shadow-xl bg-white/90 backdrop-blur-sm relative overflow-hidden p-5 md:p-6 flex flex-col justify-between transition-all duration-300 h-full w-full"
+                )}
+                onClick={() => handleCategoryClick(category)}
               >
-                {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-                  <div key={slideIndex} className="w-full flex-shrink-0">
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 p-6">
-                      {categories
-                        .slice(slideIndex * itemsPerSlide, (slideIndex + 1) * itemsPerSlide)
-                        .map((category) => {
-                        const IconComponent = category.icon
-                        const isActive = activeCategory === category.id
-
-                        return (
-                          <Card
-                            key={category.id}
-                            className={cn(
-                              "group cursor-pointer transition-all duration-300 border-0 shadow-lg hover:shadow-2xl bg-white/80 backdrop-blur-sm relative overflow-hidden",
-                              isActive && "ring-2 ring-blue-500 shadow-2xl scale-105",
-                              category.featured && "ring-2 ring-yellow-400/50"
-                            )}
-                            onClick={() => handleCategoryClick(category)}
-                          >
-                            {/* Background Gradient */}
-                            <div className={cn(
-                              "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300",
-                              category.gradient
-                            )} />
-
-                            {/* Featured Badge */}
-                            {category.featured && (
-                              <div className="absolute top-3 right-3 z-10">
-                                <Badge className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs font-semibold shadow-lg border-0">
-                                  ⭐ Featured
-                                </Badge>
-                              </div>
-                            )}
-
-                            {/* Trending Badge */}
-                            {category.trending && (
-                              <div className="absolute top-3 left-3 z-10">
-                                <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-semibold shadow-lg border-0">
-                                  📈 Trending
-                                </Badge>
-                              </div>
-                            )}
-
-                            <CardContent className="p-8 text-center relative z-10">
-                              {/* Icon */}
-                              <div className={cn(
-                                "w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3",
-                                `bg-gradient-to-br ${category.gradient}`
-                              )}>
-                                <IconComponent className="h-10 w-10 text-white" />
-                              </div>
-
-                              {/* Category Info */}
-                              <h4 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
-                                {category.name}
-                              </h4>
-
-                              <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                                {category.description}
-                              </p>
-
-                              {/* Stats */}
-                              <div className="flex items-center justify-center gap-4 mb-4">
-                                <Badge variant="secondary" className="bg-blue-100 text-blue-700 font-semibold">
-                                  {category.count}
-                                </Badge>
-                                {category.growth && (
-                                  <Badge variant="secondary" className="bg-green-100 text-green-700 font-semibold">
-                                    {category.growth}
-                                  </Badge>
-                                )}
-                                {category.popular && (
-                                  <Badge variant="secondary" className="bg-orange-100 text-orange-700 font-semibold">
-                                    🔥 Popular
-                                  </Badge>
-                                )}
-                              </div>
-
-                              {/* Subcategories Preview */}
-                              {category.subcategories && (
-                                <div className="text-xs text-gray-500 mb-4">
-                                  {category.subcategories.slice(0, 2).join(" • ")}
-                                  {category.subcategories.length > 2 && " • +more"}
-                                </div>
-                              )}
-
-                              {/* Action Button */}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200 group-hover:shadow-md"
-                              >
-                                Explore
-                                <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        )
-                      })}
-                    </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={cn(
+                    "w-10 h-10 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110",
+                    `bg-gradient-to-br ${category.gradient}`
+                  )}>
+                    <IconComponent className="h-5 w-5 text-white" />
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Slide Indicators - Desktop Only */}
-          <div className="hidden md:flex justify-center mt-8 gap-2">
-            {Array.from({ length: totalSlides }).map((_, index) => (
-              <button
-                key={index}
-                className={cn(
-                  "w-3 h-3 rounded-full transition-all duration-200",
-                  index === currentSlide
-                    ? "bg-blue-600 w-8"
-                    : "bg-gray-300 hover:bg-gray-400"
-                )}
-                onClick={() => goToSlide(index)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mt-16 text-center">
-          <div className="inline-flex flex-col md:flex-row items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-100">
-            <div className="text-sm text-gray-600 mb-2 md:mb-0">
-              Can&apos;t find what you&apos;re looking for?
-            </div>
-            <div className="flex flex-wrap justify-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push('/search?type=business')}
-                className="border-blue-200 text-blue-700 hover:bg-blue-50"
-              >
-                <MapPin className="h-4 w-4 mr-2" />
-                Search All Businesses
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push('/search?type=event')}
-                className="border-purple-200 text-purple-700 hover:bg-purple-50"
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                Browse All Events
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push('/businesses/suggest')}
-                className="border-green-200 text-green-700 hover:bg-green-50"
-              >
-                Suggest a Business
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push('/events/create')}
-                className="border-orange-200 text-orange-700 hover:bg-orange-50"
-              >
-                Create an Event
-              </Button>
-            </div>
-          </div>
+                  <h4 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{category.name}</h4>
+                </div>
+                <p className="text-sm text-gray-600 mb-4 flex-1">{category.description}</p>
+                <div className="flex items-center justify-between mt-auto">
+                  <span className="text-xs text-gray-500">{category.count} listed</span>
+                  <Button variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-50 px-2 py-1 h-8">Explore <ArrowRight className="h-4 w-4 ml-1" /></Button>
+                </div>
+              </Card>
+            )
+          })}
         </div>
       </div>
     </section>

@@ -92,3 +92,20 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Tighter section spacing for cleaner transitions */
+section {
+  margin-bottom: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  section {
+    margin-bottom: 2rem;
+  }
+}
+
+/* Reduce container vertical padding further */
+.container {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
