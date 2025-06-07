@@ -127,14 +127,14 @@ export default function SearchPage() {
             </Select>
 
             <Select
-              value={currentFilters.category}
-              onValueChange={(value) => handleFilterChange('category', value)}
+              value={currentFilters.category || "all"}
+              onValueChange={(value) => handleFilterChange('category', value === 'all' ? undefined : value)}
             >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 <SelectItem value="restaurant">Restaurants</SelectItem>
                 <SelectItem value="hotel">Hotels</SelectItem>
                 <SelectItem value="shop">Shopping</SelectItem>
@@ -147,14 +147,14 @@ export default function SearchPage() {
             </Select>
 
             <Select
-              value={currentFilters.verified?.toString() || ''}
-              onValueChange={(value) => handleFilterChange('verified', value === 'true' ? true : value === 'false' ? false : undefined)}
+              value={currentFilters.verified === undefined ? "all" : currentFilters.verified.toString()}
+              onValueChange={(value) => handleFilterChange('verified', value === 'all' ? undefined : value === 'true' ? true : false)}
             >
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="All Businesses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Businesses</SelectItem>
+                <SelectItem value="all">All Businesses</SelectItem>
                 <SelectItem value="true">Verified Only</SelectItem>
                 <SelectItem value="false">Unverified</SelectItem>
               </SelectContent>
