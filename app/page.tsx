@@ -331,9 +331,7 @@ export default function HomePage() {
     debounceMs: 300
   })
 
-  // Handle search from hero section
   const handleHeroSearch = (query: string, filters?: { location?: string; category?: string; type?: string }) => {
-    // Navigate to search results page with query
     const searchParams = new URLSearchParams({
       q: query,
       ...(filters?.location && { location: filters.location }),
@@ -344,9 +342,9 @@ export default function HomePage() {
     router.push(`/search?${searchParams.toString()}`)
   }
 
-  const featuredBusinesses = allFeaturedBusinesses.length >= 25 ? allFeaturedBusinesses.slice(0, 25) : [
+  const featuredBusinesses = allFeaturedBusinesses.length >= 20 ? allFeaturedBusinesses.slice(0, 20) : [
     ...allFeaturedBusinesses,
-    ...Array.from({ length: 25 - allFeaturedBusinesses.length }, (_, i) => ({
+    ...Array.from({ length: 20 - allFeaturedBusinesses.length }, (_, i) => ({
       id: 1000 + i,
       name: `Business ${i + 1 + allFeaturedBusinesses.length}`,
       category: "Business",
@@ -359,9 +357,9 @@ export default function HomePage() {
       type: "business",
     }))
   ]
-  const featuredEvents = allFeaturedEvents.length >= 25 ? allFeaturedEvents.slice(0, 25) : [
+  const featuredEvents = allFeaturedEvents.length >= 20 ? allFeaturedEvents.slice(0, 20) : [
     ...allFeaturedEvents,
-    ...Array.from({ length: 25 - allFeaturedEvents.length }, (_, i) => ({
+    ...Array.from({ length: 20 - allFeaturedEvents.length }, (_, i) => ({
       id: 2000 + i,
       title: `Event ${i + 1 + allFeaturedEvents.length}`,
       date: "TBD",
@@ -471,20 +469,20 @@ export default function HomePage() {
             </div>
 
             <TabsContent value="businesses">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {featuredBusinesses.map((business) => (
-                  <Card key={business.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-2 md:p-3 text-xs md:text-sm rounded-lg">
-                    <div className="aspect-[4/3] relative overflow-hidden rounded mb-1">
+                  <Card key={business.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-3 md:p-4 text-xs md:text-sm rounded-lg">
+                    <div className="aspect-[4/3] relative overflow-hidden rounded mb-2">
                       <Image src={business.image || "/placeholder.svg"} alt={business.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                     </div>
-                    <CardHeader className="pb-1 px-0">
-                      <CardTitle className="text-xs md:text-sm font-semibold group-hover:text-[#0A558C] mb-0.5 truncate">{business.name}</CardTitle>
+                    <CardHeader className="pb-2 px-0">
+                      <CardTitle className="text-sm md:text-base font-semibold group-hover:text-[#0A558C] mb-1 truncate">{business.name}</CardTitle>
                       <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-600">
                         <MapPin className="h-3 w-3 text-[#0A558C]" />
                         <span>{business.location}</span>
                       </div>
                     </CardHeader>
-                    <CardContent className="px-0 pt-0 pb-1">
+                    <CardContent className="px-0 pt-0 pb-2">
                       <CardDescription className="mb-1 text-[10px] md:text-xs text-gray-600 line-clamp-2">{business.description}</CardDescription>
                       <div className="flex items-center justify-between text-[10px] md:text-xs">
                         <span>{business.reviews} reviews</span>
@@ -497,7 +495,7 @@ export default function HomePage() {
             </TabsContent>
 
             <TabsContent value="events">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {featuredEvents.map((event) => (
                   <Card key={event.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-2 md:p-3 text-xs md:text-sm rounded-lg">
                     <div className="aspect-[4/3] relative overflow-hidden rounded mb-1">
@@ -557,20 +555,20 @@ export default function HomePage() {
             </div>
 
             <TabsContent value="businesses">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {featuredBusinesses.map((business) => (
-                  <Card key={business.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-2 md:p-3 text-xs md:text-sm rounded-lg">
-                    <div className="aspect-[4/3] relative overflow-hidden rounded mb-1">
+                  <Card key={business.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-3 md:p-4 text-xs md:text-sm rounded-lg">
+                    <div className="aspect-[4/3] relative overflow-hidden rounded mb-2">
                       <Image src={business.image || "/placeholder.svg"} alt={business.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                     </div>
-                    <CardHeader className="pb-1 px-0">
-                      <CardTitle className="text-xs md:text-sm font-semibold group-hover:text-[#0A558C] mb-0.5 truncate">{business.name}</CardTitle>
+                    <CardHeader className="pb-2 px-0">
+                      <CardTitle className="text-sm md:text-base font-semibold group-hover:text-[#0A558C] mb-1 truncate">{business.name}</CardTitle>
                       <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-600">
                         <MapPin className="h-3 w-3 text-[#0A558C]" />
                         <span>{business.location}</span>
                       </div>
                     </CardHeader>
-                    <CardContent className="px-0 pt-0 pb-1">
+                    <CardContent className="px-0 pt-0 pb-2">
                       <CardDescription className="mb-1 text-[10px] md:text-xs text-gray-600 line-clamp-2">{business.description}</CardDescription>
                       <div className="flex items-center justify-between text-[10px] md:text-xs">
                         <span>{business.reviews} reviews</span>
@@ -583,7 +581,7 @@ export default function HomePage() {
             </TabsContent>
 
             <TabsContent value="events">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {featuredEvents.map((event) => (
                   <Card key={event.id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-2 md:p-3 text-xs md:text-sm rounded-lg">
                     <div className="aspect-[4/3] relative overflow-hidden rounded mb-1">

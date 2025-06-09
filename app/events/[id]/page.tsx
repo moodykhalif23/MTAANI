@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { ArrowLeft, MapPin, Calendar, Clock, Users, Share2, Heart, Ticket, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,72 +14,82 @@ import { Footer } from "@/components/footer"
 import ReviewSystem from "@/components/review-system"
 import Link from "next/link"
 
-// Mock data - in real app, this would come from props or API
-const eventData = {
-  id: 1,
-  title: "Summer Music Festival",
-  category: "Music",
-  date: "July 15, 2024",
-  time: "6:00 PM - 11:00 PM",
-  location: "Central Park Amphitheater",
-  address: "100 Park Ave, Downtown",
-  attendees: 245,
-  maxAttendees: 500,
-  price: "Free",
-  image: "/placeholder.svg?height=400&width=800",
-  organizer: {
-    name: "City Events Committee",
-    avatar: "/placeholder.svg?height=40&width=40",
-    verified: true,
-    description:
-      "Official city events organizing committee dedicated to bringing quality entertainment to our community.",
-  },
-  description:
-    "Join us for an evening of live music featuring local bands and artists. Food trucks and vendors will be available throughout the event. This family-friendly festival celebrates our local music scene and brings the community together for an unforgettable night.",
-  longDescription:
-    "The Summer Music Festival is our annual celebration of local talent and community spirit. This year's lineup features over 12 local bands across multiple genres, from indie rock to folk acoustic. The event takes place at our beautiful Central Park Amphitheater with state-of-the-art sound systems and lighting.\n\nFood trucks will offer diverse cuisine options, and local vendors will showcase handmade crafts and artwork. Free parking is available, and the venue is accessible for individuals with disabilities.\n\nSchedule:\n- 6:00 PM: Gates open, vendors and food trucks available\n- 7:00 PM: Opening act - Local Folk Trio\n- 8:00 PM: Main stage performances begin\n- 10:30 PM: Headline act - Thunder Valley Band\n- 11:00 PM: Event concludes",
-  tags: ["Outdoor", "Family Friendly", "Live Music", "Food Trucks", "Free Event"],
-  images: [
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-  ],
-  lineup: [
-    { name: "Thunder Valley Band", time: "10:30 PM", genre: "Rock" },
-    { name: "Acoustic Dreams", time: "9:00 PM", genre: "Folk" },
-    { name: "City Lights", time: "8:00 PM", genre: "Indie" },
-    { name: "Local Folk Trio", time: "7:00 PM", genre: "Folk" },
-  ],
-  amenities: ["Free Parking", "Accessible Venue", "Food Trucks", "Vendor Booths", "Restrooms", "First Aid Station"],
+interface Organizer {
+  name: string
+  avatar?: string
+  verified: boolean
+  description: string
 }
 
-const eventReviews = [
-  {
-    id: 1,
-    user: { name: "Jessica Martinez", verified: true },
-    rating: 5,
-    comment: "Amazing event! Great music, good food, and wonderful atmosphere. Perfect family event.",
-    date: "Last year",
-    helpful: 24,
-    notHelpful: 1,
-  },
-  {
-    id: 2,
-    user: { name: "David Thompson", verified: false },
-    rating: 4,
-    comment: "Really enjoyed the music and food trucks. Gets crowded but that's expected for a free event.",
-    date: "Last year",
-    helpful: 18,
-    notHelpful: 2,
-  },
-]
+interface LineupAct {
+  name: string
+  role?: string
+  genre?: string
+  time?: string
+}
 
-export default function EventDetailPage({ }: { params: { id: string } }) {
+interface Event {
+  id: number 
+  title: string
+  description: string
+  longDescription: string
+  category: string
+  image?: string
+  date: string
+  time: string
+  location: string
+  address: string
+  attendees: number
+  maxAttendees: number
+  price: string
+  organizer: Organizer
+  tags: string[]
+  images: string[]
+  lineup: LineupAct[]
+  amenities: string[]
+}
+
+export default function EventDetailPage({ params }: { params: { id: string } }) {
   const [isRegistered, setIsRegistered] = useState(false)
   const [isFavorited, setIsFavorited] = useState(false)
+  const [eventData, setEventData] = useState<Event | null>(null)
+  const [eventReviews, setEventReviews] = useState<Array<{
+    id: number
+    user: {
+      name: string
+      avatar?: string
+      verified: boolean
+    }
+    rating: number
+    comment: string
+    date: string
+    helpful: number
+    notHelpful: number
+    images?: string[]
+  }>>([])
 
-  const attendeePercentage = (eventData.attendees / eventData.maxAttendees) * 100
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const response = await fetch(`/api/events/${params.id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setEventData({
+            ...data.data?.event,
+            id: parseInt(data.data?.event?.id, 10)
+          } as Event)
+          setEventReviews(data.data?.reviews || [])
+        }      } catch {
+        setEventData(null)
+        setEventReviews([])
+      }
+    }
+    fetchEvent()
+  }, [params.id])
+
+  if (!eventData) return null
+
+  const attendeePercentage = eventData.maxAttendees ? (eventData.attendees / eventData.maxAttendees) * 100 : 0
 
   return (
     <div className="min-h-screen bg-background">

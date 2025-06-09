@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   BarChart,
   Bar,
@@ -35,145 +35,178 @@ import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
-export default function EventManagePage() {
-  const [selectedEvent, setSelectedEvent] = useState("summer-festival")
+interface Event {
+  id: string;
+  name: string;
+  date: string;
+  status: "active" | "upcoming" | "past";
+  attendees: number;
+  capacity: number;
+}
 
-  // Mock data for event analytics
-  const eventStats = {
-    totalAttendees: 487,
-    attendeesChange: 23.5,
-    registrations: 542,
-    registrationsChange: 18.2,
-    shares: 156,
-    sharesChange: 45.8,
-    engagement: 78,
-    engagementChange: 12.1,
-    revenue: 12450,
-    revenueChange: 28.7,
-  }
+interface RegistrationData {
+  day: string;
+  registrations: number;
+}
 
-  const registrationData = [
-    { day: "Day 1", registrations: 45 },
-    { day: "Day 2", registrations: 67 },
-    { day: "Day 3", registrations: 89 },
-    { day: "Day 4", registrations: 123 },
-    { day: "Day 5", registrations: 98 },
-    { day: "Day 6", registrations: 76 },
-    { day: "Day 7", registrations: 44 },
-  ]
+interface AttendeeGrowthData {
+  week: string;
+  confirmed: number;
+  pending: number;
+}
 
-  const attendeeData = [
-    { week: "Week 1", confirmed: 120, pending: 45 },
-    { week: "Week 2", confirmed: 180, pending: 32 },
-    { week: "Week 3", confirmed: 245, pending: 28 },
-    { week: "Week 4", confirmed: 320, pending: 22 },
-    { week: "Current", confirmed: 487, pending: 55 },
-  ]
+interface DemographicData {
+  name: string;
+  value: number;
+  color: string;
+}
 
-  const demographicsData = [
-    { name: "18-25", value: 35, color: "#0088FE" },
-    { name: "26-35", value: 28, color: "#00C49F" },
-    { name: "36-45", value: 22, color: "#FFBB28" },
-    { name: "46+", value: 15, color: "#FF8042" },
-  ]
+interface TrafficSource {
+  name: string;
+  value: number;
+}
 
-  const trafficSources = [
-    { name: "Social Media", value: 45, color: "#0088FE" },
-    { name: "Direct Link", value: 25, color: "#00C49F" },
-    { name: "Email Campaign", value: 20, color: "#FFBB28" },
-    { name: "Word of Mouth", value: 10, color: "#FF8042" },
-  ]
+interface TopPerformer {
+  name: string;
+  engagement: number;
+  attendees: number;
+}
 
-  const recentFeedback = [
-    {
-      id: 1,
-      attendee: "Sarah Johnson",
-      rating: 5,
-      comment: "Amazing event! Great organization and fantastic lineup.",
-      date: "2 hours ago",
-      verified: true,
-    },
-    {
-      id: 2,
-      attendee: "Mike Chen",
-      rating: 4,
-      comment: "Really enjoyed the event. Food trucks were a nice touch.",
-      date: "5 hours ago",
-      verified: true,
-    },
-    {
-      id: 3,
-      attendee: "Emma Davis",
-      rating: 5,
-      comment: "Best community event I've attended. Will definitely come next year!",
-      date: "1 day ago",
-      verified: false,
-    },
-  ]
+interface Feedback {
+  id: string;
+  attendee: string;
+  rating: number;
+  comment: string;
+  date: string;
+  verified: boolean;
+}
 
-  const topPerformers = [
-    { name: "Main Stage Performance", engagement: 95, attendees: 450 },
-    { name: "Food Truck Area", engagement: 87, attendees: 380 },
-    { name: "Kids Zone", engagement: 82, attendees: 120 },
-    { name: "Vendor Booths", engagement: 76, attendees: 290 },
-  ]
+interface StatCardProps {
+  title: string;
+  value: number;
+  change: number;
+  icon: React.ElementType;
+  prefix?: string;
+  suffix?: string;
+}
 
-  const myEvents = [
-    {
-      id: "summer-festival",
-      name: "Summer Music Festival",
-      date: "July 15, 2024",
-      status: "active",
-      attendees: 487,
-      capacity: 500,
-    },
-    {
-      id: "food-fair",
-      name: "Local Food Fair",
-      date: "August 20, 2024",
-      status: "upcoming",
-      attendees: 234,
-      capacity: 300,
-    },
-    {
-      id: "art-walk",
-      name: "Community Art Walk",
-      date: "June 10, 2024",
-      status: "completed",
-      attendees: 156,
-      capacity: 200,
-    },
-  ]
-
-  const StatCard = ({ title, value, change, icon: Icon, prefix = "", suffix = "" }) => (
-    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-600">{title}</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {prefix}
-              {typeof value === "number" ? value.toLocaleString() : value}
-              {suffix}
-            </p>
-            <div className="flex items-center mt-1">
-              {change > 0 ? (
-                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-              ) : (
-                <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-              )}
-              <span className={`text-sm ${change > 0 ? "text-green-600" : "text-red-600"}`}>
-                {Math.abs(change)}% from last event
-              </span>
-            </div>
-          </div>
-          <div className="p-3 bg-blue-50 rounded-full">
-            <Icon className="h-6 w-6 text-blue-600" />
+const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon: Icon, prefix = "", suffix = "" }) => (
+  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+    <CardContent className="p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {prefix}
+            {typeof value === "number" ? value.toLocaleString() : value}
+            {suffix}
+          </p>
+          <div className="flex items-center mt-1">
+            {change > 0 ? (
+              <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+            ) : (
+              <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+            )}
+            <span className={`text-sm ${change > 0 ? "text-green-600" : "text-red-600"}`}>
+              {Math.abs(change)}% from last event
+            </span>
           </div>
         </div>
-      </CardContent>
-    </Card>
+        <div className="p-3 bg-blue-50 rounded-full">
+          <Icon className="h-6 w-6 text-blue-600" />
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+)
+
+export default function EventManagePage() {
+  const [selectedEvent, setSelectedEvent] = useState("summer-festival")
+  const [myEvents, setMyEvents] = useState<Event[]>([])
+  const [registrationData] = useState<RegistrationData[]>(
+    [
+      { day: "Mon", registrations: 12 },
+      { day: "Tue", registrations: 18 },
+      { day: "Wed", registrations: 15 },
+      { day: "Thu", registrations: 25 },
+      { day: "Fri", registrations: 20 },
+    ]
   )
+  const [attendeeGrowthData] = useState<AttendeeGrowthData[]>(
+    [
+      { week: "Week 1", confirmed: 120, pending: 30 },
+      { week: "Week 2", confirmed: 250, pending: 45 },
+      { week: "Week 3", confirmed: 380, pending: 60 },
+      { week: "Week 4", confirmed: 480, pending: 75 },
+    ]
+  )
+  const [demographicData] = useState<DemographicData[]>(
+    [
+      { name: "18-24", value: 30, color: "#60A5FA" },
+      { name: "25-34", value: 40, color: "#34D399" },
+      { name: "35-44", value: 20, color: "#F472B6" },
+      { name: "45+", value: 10, color: "#A78BFA" },
+    ]
+  )
+  const [trafficSources] = useState<TrafficSource[]>(
+    [
+      { name: "Social Media", value: 45 },
+      { name: "Direct", value: 30 },
+      { name: "Search", value: 15 },
+      { name: "Referral", value: 10 },
+    ]
+  )
+  const [topPerformers] = useState<TopPerformer[]>(
+    [
+      { name: "Main Stage", engagement: 85, attendees: 250 },
+      { name: "Workshop Area", engagement: 75, attendees: 120 },
+      { name: "Food Court", engagement: 65, attendees: 180 },
+    ]
+  )
+  const [feedback] = useState<Feedback[]>(
+    [
+      {
+        id: "1",
+        attendee: "Sarah Johnson",
+        rating: 5,
+        comment: "Amazing event! Everything was perfectly organized.",
+        date: "2025-06-01",
+        verified: true
+      },
+      {
+        id: "2",
+        attendee: "Mike Chen",
+        rating: 4,
+        comment: "Great atmosphere and excellent vendors.",
+        date: "2025-06-02",
+        verified: true
+      },
+      {
+        id: "3",
+        attendee: "Emma Davis",
+        rating: 5,
+        comment: "Will definitely come back next time!",
+        date: "2025-06-03",
+        verified: false
+      }
+    ]
+  )
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('/api/events?limit=100')
+        if (response.ok) {
+          const data = await response.json()
+          setMyEvents(data.data?.events || [])
+        } else {
+          setMyEvents([])
+        }      } catch {
+        setMyEvents([])
+      }
+    }
+    fetchEvents()
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -219,15 +252,8 @@ export default function EventManagePage() {
                   >
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-medium">{event.name}</h3>
-                        <Badge
-                          variant={
-                            event.status === "active"
-                              ? "default"
-                              : event.status === "upcoming"
-                                ? "secondary"
-                                : "outline"
-                          }
+                        <h3 className="font-medium">{event.name}</h3>                        <Badge
+                          variant={event.status === "active" ? "default" : event.status === "upcoming" ? "secondary" : "outline"}
                         >
                           {event.status}
                         </Badge>
@@ -250,33 +276,34 @@ export default function EventManagePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <StatCard
             title="Total Attendees"
-            value={eventStats.totalAttendees}
-            change={eventStats.attendeesChange}
+            value={0}
+            change={0}
             icon={Users}
           />
           <StatCard
             title="Registrations"
-            value={eventStats.registrations}
-            change={eventStats.registrationsChange}
+            value={0}
+            change={0}
             icon={Calendar}
           />
-          <StatCard title="Social Shares" value={eventStats.shares} change={eventStats.sharesChange} icon={Share2} />
+          <StatCard title="Social Shares" value={0} change={0} icon={Share2} />
           <StatCard
             title="Engagement Rate"
-            value={eventStats.engagement}
-            change={eventStats.engagementChange}
+            value={0}
+            change={0}
             icon={MessageSquare}
             suffix="%"
           />
           <StatCard
             title="Revenue"
-            value={eventStats.revenue}
-            change={eventStats.revenueChange}
+            value={0}
+            change={0}
             icon={TrendingUp}
             prefix="$"
           />
         </div>
 
+        {/* Main Content */}
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -315,7 +342,7 @@ export default function EventManagePage() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={attendeeData}>
+                    <BarChart data={attendeeGrowthData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="week" />
                       <YAxis />
@@ -338,8 +365,15 @@ export default function EventManagePage() {
                 <CardContent>
                   <ResponsiveContainer width="100%" height={200}>
                     <PieChart>
-                      <Pie data={demographicsData} cx="50%" cy="50%" innerRadius={40} outerRadius={80} dataKey="value">
-                        {demographicsData.map((entry, index) => (
+                      <Pie 
+                        data={demographicData} 
+                        cx="50%" 
+                        cy="50%" 
+                        innerRadius={40} 
+                        outerRadius={80} 
+                        dataKey="value"
+                      >
+                        {demographicData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -347,13 +381,13 @@ export default function EventManagePage() {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="mt-4 space-y-2">
-                    {demographicsData.map((demo, index) => (
+                    {demographicData.map((demo, index) => (
                       <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: demo.color }} />
-                          <span className="text-sm">{demo.name}</span>
-                        </div>
-                        <span className="text-sm font-medium">{demo.value}%</span>
+                        <span className="flex items-center">
+                          <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: demo.color }} />
+                          {demo.name}
+                        </span>
+                        <span>{demo.value}%</span>
                       </div>
                     ))}
                   </div>
@@ -586,7 +620,7 @@ export default function EventManagePage() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {recentFeedback.map((feedback) => (
+                      {feedback.map((feedback) => (
                         <div key={feedback.id} className="border rounded-lg p-4">
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex items-center gap-2">

@@ -1,4 +1,3 @@
-// Notification Manager for handling push notifications
 class NotificationManager {
   private vapidPublicKey = "BLVYgI-HyS-GDpr5H9U3OqPCp_LRBJWvO8-F-GpYg9tP-q6CSiWKIxlnQeVFwIWsO6LwxdWJoZHr_YOXQxm80QA"
   private serviceWorkerRegistration: ServiceWorkerRegistration | null = null
@@ -93,6 +92,20 @@ class NotificationManager {
     if (!this.isSecureContext || !this.serviceWorkerRegistration) {
       console.log("Push notifications require HTTPS and service worker")
       return null
+    }
+
+    // Wait for the service worker to be activated
+    const sw = this.serviceWorkerRegistration.active || this.serviceWorkerRegistration.waiting || this.serviceWorkerRegistration.installing;
+    if (sw && sw.state !== "activated") {
+      await new Promise<void>((resolve) => {
+        const listener = () => {
+          if (sw.state === "activated") {
+            sw.removeEventListener("statechange", listener)
+            resolve()
+          }
+        }
+        sw.addEventListener("statechange", listener)
+      })
     }
 
     try {

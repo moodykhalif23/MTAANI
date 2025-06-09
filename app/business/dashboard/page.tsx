@@ -28,138 +28,45 @@ import { SubscriptionManager } from "@/components/subscription-manager"
 import { AnalyticsGate } from "@/components/feature-gate"
 import Link from "next/link"
 
-export default function BusinessDashboard() {
-
-  // Mock data - in real app, this would come from API
-  const businessStats = {
-    totalViews: 2847,
-    viewsChange: 12.5,
-    totalReviews: 89,
-    reviewsChange: 8.2,
-    averageRating: 4.6,
-    ratingChange: 0.3,
-    totalCalls: 156,
-    callsChange: -2.1,
-    bookings: 45,
-    bookingsChange: 15.8,
-  }
-
-  const revenueData = [
-    { month: "Jan", revenue: 4200, bookings: 32 },
-    { month: "Feb", revenue: 3800, bookings: 28 },
-    { month: "Mar", revenue: 5100, bookings: 42 },
-    { month: "Apr", revenue: 4600, bookings: 38 },
-    { month: "May", revenue: 5800, bookings: 48 },
-    { month: "Jun", revenue: 6200, bookings: 52 },
-  ]
-
-  const viewsData = [
-    { day: "Mon", views: 245 },
-    { day: "Tue", views: 312 },
-    { day: "Wed", views: 189 },
-    { day: "Thu", views: 278 },
-    { day: "Fri", views: 356 },
-    { day: "Sat", views: 423 },
-    { day: "Sun", views: 298 },
-  ]
-
-  const trafficSources = [
-    { name: "Direct Search", value: 45, color: "#0088FE" },
-    { name: "Google Maps", value: 30, color: "#00C49F" },
-    { name: "Social Media", value: 15, color: "#FFBB28" },
-    { name: "Referrals", value: 10, color: "#FF8042" },
-  ]
-
-  const recentReviews = [
-    {
-      id: 1,
-      customer: "Sarah Johnson",
-      rating: 5,
-      comment: "Amazing service and great atmosphere! Highly recommend.",
-      date: "2 hours ago",
-      verified: true,
-    },
-    {
-      id: 2,
-      customer: "Mike Chen",
-      rating: 4,
-      comment: "Good food and friendly staff. Will definitely come back.",
-      date: "1 day ago",
-      verified: true,
-    },
-    {
-      id: 3,
-      customer: "Emma Davis",
-      rating: 5,
-      comment: "Best coffee in town! The baristas are very skilled.",
-      date: "2 days ago",
-      verified: false,
-    },
-  ]
-
-  const upcomingBookings = [
-    {
-      id: 1,
-      customer: "John Smith",
-      service: "Consultation",
-      date: "Today",
-      time: "2:00 PM",
-      status: "confirmed",
-    },
-    {
-      id: 2,
-      customer: "Lisa Wilson",
-      service: "Haircut",
-      date: "Tomorrow",
-      time: "10:30 AM",
-      status: "pending",
-    },
-    {
-      id: 3,
-      customer: "David Brown",
-      service: "Massage",
-      date: "Dec 28",
-      time: "3:00 PM",
-      status: "confirmed",
-    },
-  ]
-
-  const StatCard = ({ title, value, change, icon: Icon, prefix = "", suffix = "" }: {
-    title: string
-    value: string | number
-    change: number
-    icon: React.ComponentType<{ className?: string }>
-    prefix?: string
-    suffix?: string
-  }) => (
-    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-gray-600">{title}</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {prefix}
-              {value}
-              {suffix}
-            </p>
-            <div className="flex items-center mt-1">
-              {change > 0 ? (
-                <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-              ) : (
-                <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-              )}
-              <span className={`text-sm ${change > 0 ? "text-green-600" : "text-red-600"}`}>
-                {Math.abs(change)}% from last week
-              </span>
-            </div>
-          </div>
-          <div className="p-3 bg-blue-50 rounded-full">
-            <Icon className="h-6 w-6 text-blue-600" />
+// StatCard component for metrics
+const StatCard = ({ title, value, change, icon: Icon, prefix = "", suffix = "" }: {
+  title: string;
+  value: string | number;
+  change: number;
+  icon: React.ComponentType<{ className?: string }>;
+  prefix?: string;
+  suffix?: string;
+}) => (
+  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+    <CardContent className="p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-600">{title}</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {prefix}
+            {value}
+            {suffix}
+          </p>
+          <div className="flex items-center mt-1">
+            {change > 0 ? (
+              <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+            ) : (
+              <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+            )}
+            <span className={`text-sm ${change > 0 ? "text-green-600" : "text-red-600"}`}>
+              {Math.abs(change)}% from last week
+            </span>
           </div>
         </div>
-      </CardContent>
-    </Card>
-  )
+        <div className="p-3 bg-blue-50 rounded-full">
+          <Icon className="h-6 w-6 text-blue-600" />
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+)
+
+export default function BusinessDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -194,33 +101,33 @@ export default function BusinessDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <StatCard
             title="Profile Views"
-            value={businessStats.totalViews.toLocaleString()}
-            change={businessStats.viewsChange}
+            value={0}
+            change={0}
             icon={Eye}
           />
           <StatCard
             title="Customer Reviews"
-            value={businessStats.totalReviews}
-            change={businessStats.reviewsChange}
+            value={0}
+            change={0}
             icon={MessageSquare}
           />
           <StatCard
             title="Average Rating"
-            value={businessStats.averageRating}
-            change={businessStats.ratingChange}
+            value={0}
+            change={0}
             icon={Star}
             suffix="/5"
           />
           <StatCard
             title="Phone Calls"
-            value={businessStats.totalCalls}
-            change={businessStats.callsChange}
+            value={0}
+            change={0}
             icon={Phone}
           />
           <StatCard
             title="Bookings"
-            value={businessStats.bookings}
-            change={businessStats.bookingsChange}
+            value={0}
+            change={0}
             icon={Calendar}
           />
           </div>
@@ -247,7 +154,7 @@ export default function BusinessDashboard() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={revenueData}>
+                    <BarChart data={[]}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="month" />
                       <YAxis />
@@ -266,7 +173,7 @@ export default function BusinessDashboard() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={viewsData}>
+                    <LineChart data={[]}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="day" />
                       <YAxis />
@@ -288,8 +195,8 @@ export default function BusinessDashboard() {
                 <CardContent>
                   <ResponsiveContainer width="100%" height={200}>
                     <PieChart>
-                      <Pie data={trafficSources} cx="50%" cy="50%" innerRadius={40} outerRadius={80} dataKey="value">
-                        {trafficSources.map((entry, index) => (
+                      <Pie data={[] as { value: number; color: string }[]} cx="50%" cy="50%" innerRadius={40} outerRadius={80} dataKey="value">
+                        {( [] as { value: number; color: string }[] ).map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -297,7 +204,7 @@ export default function BusinessDashboard() {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="mt-4 space-y-2">
-                    {trafficSources.map((source, index) => (
+                    {([] as { name: string; value: number; color: string }[]).map((source, index) => (
                       <div key={index} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: source.color }} />
@@ -393,7 +300,7 @@ export default function BusinessDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {recentReviews.map((review) => (
+                      {([] as { id: number; customer: string; verified: boolean; date: string; rating: number; comment: string }[]).map((review) => (
                         <div key={review.id} className="border rounded-lg p-4">
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex items-center gap-2">
@@ -443,7 +350,7 @@ export default function BusinessDashboard() {
                           />
                         ))}
                       </div>
-                      <p className="text-sm text-gray-600">Based on {businessStats.totalReviews} reviews</p>
+                      <p className="text-sm text-gray-600">Based on {0} reviews</p>
                     </div>
 
                     <div className="space-y-2">
@@ -475,7 +382,7 @@ export default function BusinessDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {upcomingBookings.map((booking) => (
+                    {([] as { id: number; customer: string; service: string; date: string; time: string; status: string }[]).map((booking) => (
                       <div key={booking.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div>
                           <h4 className="font-medium">{booking.customer}</h4>

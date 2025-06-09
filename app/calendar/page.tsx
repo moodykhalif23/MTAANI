@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight, CalendarIcon, MapPin, Clock, Users, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,70 +15,32 @@ export default function EventCalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState("month")
   const [selectedCategory, setSelectedCategory] = useState("all")
+  const [events, setEvents] = useState<Array<{
+    id: string;
+    title: string;
+    date: string;
+    time: string;
+    category: string;
+    location: string;
+    attendees: number;
+    color: string;
+  }>>([])
 
-  // Sample events data
-  const events = [
-    {
-      id: 1,
-      title: "Summer Music Festival",
-      date: "2024-07-15",
-      time: "6:00 PM",
-      category: "Music",
-      location: "Central Park",
-      attendees: 245,
-      color: "bg-blue-500",
-    },
-    {
-      id: 2,
-      title: "Local Farmers Market",
-      date: "2024-07-13",
-      time: "8:00 AM",
-      category: "Community",
-      location: "Main Street",
-      attendees: 89,
-      color: "bg-green-500",
-    },
-    {
-      id: 3,
-      title: "Art Gallery Opening",
-      date: "2024-07-18",
-      time: "6:00 PM",
-      category: "Arts",
-      location: "Downtown Gallery",
-      attendees: 34,
-      color: "bg-purple-500",
-    },
-    {
-      id: 4,
-      title: "Business Networking",
-      date: "2024-07-20",
-      time: "7:00 PM",
-      category: "Business",
-      location: "Chamber of Commerce",
-      attendees: 67,
-      color: "bg-orange-500",
-    },
-    {
-      id: 5,
-      title: "Community Yoga",
-      date: "2024-07-16",
-      time: "7:00 AM",
-      category: "Health",
-      location: "Riverside Park",
-      attendees: 28,
-      color: "bg-teal-500",
-    },
-    {
-      id: 6,
-      title: "Food Truck Rally",
-      date: "2024-07-22",
-      time: "11:00 AM",
-      category: "Food",
-      location: "City Hall Plaza",
-      attendees: 156,
-      color: "bg-red-500",
-    },
-  ]
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('/api/events?limit=100')
+        if (response.ok) {
+          const data = await response.json()
+          setEvents(data.data?.events || [])
+        } else {
+          setEvents([])
+        }      } catch {
+        setEvents([])
+      }
+    }
+    fetchEvents()
+  }, [])
 
   const categories = [
     { value: "all", label: "All Categories" },

@@ -24,121 +24,95 @@ import { Footer } from "@/components/footer"
 import ReviewSystem from "@/components/review-system"
 import Link from "next/link"
 
-const businessData = {
-  id: 1,
-  name: "The Coffee Corner",
-  category: "Café",
-  rating: 4.8,
-  reviews: 124,
-  priceRange: "$$",
-  location: "123 Main St, Downtown",
-  phone: "(555) 123-4567",
-  website: "coffeecorner.com",
-  email: "hello@coffeecorner.com",
-  hours: {
-    monday: "6:00 AM - 8:00 PM",
-    tuesday: "6:00 AM - 8:00 PM",
-    wednesday: "6:00 AM - 8:00 PM",
-    thursday: "6:00 AM - 8:00 PM",
-    friday: "6:00 AM - 8:00 PM",
-    saturday: "7:00 AM - 9:00 PM",
-    sunday: "7:00 AM - 9:00 PM",
-  },
-  description:
-    "Artisan coffee and fresh pastries in the heart of the city. Known for our signature roasts and cozy atmosphere perfect for work or casual meetings.",
-  features: ["WiFi", "Pet Friendly", "Outdoor Seating", "Takeout", "Parking Available"],
-  images: [
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-  ],
-  menu: [
-    { category: "Coffee", items: ["Espresso", "Americano", "Cappuccino", "Latte", "Cold Brew"] },
-    { category: "Pastries", items: ["Croissant", "Muffin", "Danish", "Scone"] },
-    { category: "Sandwiches", items: ["BLT", "Club", "Grilled Cheese", "Panini"] },
-  ],
+interface BusinessHours {
+  [key: string]: string;
 }
 
-const reviewsData = [
-  {
-    id: 1,
-    user: { name: "Sarah Johnson", verified: true },
-    rating: 5,
-    comment:
-      "Amazing coffee and friendly staff! The atmosphere is perfect for working or catching up with friends. Highly recommend the lavender latte!",
-    date: "2 days ago",
-    helpful: 12,
-    notHelpful: 1,
-  },
-  {
-    id: 2,
-    user: { name: "Mike Chen", verified: false },
-    rating: 4,
-    comment:
-      "Great coffee and pastries. The WiFi is reliable and the place isn't too noisy. Only downside is it can get crowded during lunch hours.",
-    date: "1 week ago",
-    helpful: 8,
-    notHelpful: 0,
-  },
-  {
-    id: 3,
-    user: { name: "Emma Davis", verified: true },
-    rating: 5,
-    comment: "Best coffee in town! The baristas really know their craft. The outdoor seating is a nice touch too.",
-    date: "2 weeks ago",
-    helpful: 15,
-    notHelpful: 2,
-  },
-]
+interface MenuItem {
+  category: string;
+  items: string[];
+}
 
-export default function BusinessDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  // Unwrap params using React.use()
-  const { id } = React.use(params)
+interface Business {
+  id: number;
+  name: string;
+  category: string;
+  stats?: {
+    rating: number;
+    reviews: number;
+  };
+  priceRange: string;
+  location: {
+    address: string;
+  };
+  contact: {
+    phone: string;
+    website?: string;
+    email: string;
+  };
+  hours: BusinessHours;
+  description: string;
+  services: string[];
+  media?: {
+    gallery: string[];
+  };
+  menu: MenuItem[];
+}
 
+export default function BusinessDetailPage({ params }: { params: { id: string } }) {
   const [selectedImage, setSelectedImage] = useState(0)
   const [isFavorited, setIsFavorited] = useState(false)
-  const [business, setBusiness] = useState(businessData) // Start with fallback data
-  const [,] = useState(true)
+  const [business, setBusiness] = useState<Business | null>(null)
 
-  // Fetch business data from API
   useEffect(() => {
     const fetchBusiness = async () => {
       try {
-        const response = await fetch(`/api/businesses/${id}`)
-
+        const response = await fetch(`/api/businesses/${params.id}`)
         if (response.ok) {
-          const data = await response.json()
+          const data = await response.json();
           if (data.success && data.data?.business) {
-            // Transform API data to match component expectations
-            const apiBusiness = data.data.business
-            setBusiness({
-              id: apiBusiness.id,
-              name: apiBusiness.name,
-              category: apiBusiness.category,
-              rating: apiBusiness.stats?.rating || 0,
-              reviews: apiBusiness.stats?.reviews || 0,
-              priceRange: "$$", // Default or from business data
-              location: apiBusiness.location?.address || "Address not available",
-              phone: apiBusiness.contact?.phone || "Phone not available",
-              website: apiBusiness.contact?.website || "",
-              email: apiBusiness.contact?.email || "",
-              hours: apiBusiness.hours || businessData.hours, // Fallback to default hours
-              description: apiBusiness.description || "No description available",
-              features: apiBusiness.services || businessData.features, // Use services as features
-              images: apiBusiness.media?.gallery || businessData.images,
-              menu: businessData.menu // Keep default menu for now
-            })
+            const businessData: Business = {
+              id: parseInt(data.data.business.id),
+              name: data.data.business.name,
+              category: data.data.business.category,
+              stats: {
+                rating: data.data.business.stats?.rating || 0,
+                reviews: data.data.business.stats?.reviews || 0
+              },
+              priceRange: data.data.business.priceRange || "$$",
+              location: {
+                address: data.data.business.location?.address || "Address not available"
+              },
+              contact: {
+                phone: data.data.business.contact?.phone || "Phone not available",
+                website: data.data.business.contact?.website || undefined,
+                email: data.data.business.contact?.email || ""
+              },
+              hours: data.data.business.hours || {},
+              description: data.data.business.description || "No description available",
+              services: data.data.business.services || [],
+              media: {
+                gallery: data.data.business.media?.gallery || []
+              },
+              menu: data.data.business.menu || []
+            }
+            setBusiness(businessData)
+          } else {
+            setBusiness(null)
           }
-        }
-      } catch (err) {
-        console.error('Error fetching business:', err)
-        // Keep using fallback data
+        } else {
+          setBusiness(null)
+        }      } catch {
+        setBusiness(null)
       }
     }
 
     fetchBusiness()
-  }, [id])
+  }, [params.id])
+
+  if (!business) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -176,13 +150,13 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
           <div className="lg:col-span-2">
             <div className="aspect-video relative overflow-hidden rounded-lg mb-4">
               <Image
-                src={business.images[selectedImage] || "/placeholder.svg"}
+                src={business.media?.gallery[selectedImage] || "/placeholder.svg"}
                 alt={business.name}
                 fill
                 className="object-cover"
               />
               <div className="absolute bottom-4 left-4 flex gap-2">
-                {business.images.map((_, index) => (
+                {(business.media?.gallery || []).map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
@@ -197,7 +171,7 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
             </div>
 
             <div className="flex gap-2 mb-4">
-              {business.images.slice(1, 4).map((image, index) => (
+              {(business.media?.gallery || []).slice(1, 4).map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index + 1)}
@@ -219,8 +193,8 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
                 <h1 className="text-3xl font-bold mb-2 text-[#0A558C]">{business.name}</h1>
                 <div className="flex items-center gap-1 mb-2">
                   <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium">{business.rating}</span>
-                  <span className="text-muted-foreground">({business.reviews} reviews)</span>
+                  <span className="font-medium">{business.stats?.rating}</span>
+                  <span className="text-muted-foreground">({business.stats?.reviews} reviews)</span>
                 </div>
               </div>
             </div>
@@ -230,24 +204,24 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <MapPin className="h-5 w-5 text-[#0A558C]" />
-                <span>{business.location}</span>
+                <span>{business.location.address}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-[#0A558C]" />
-                <a href={`tel:${business.phone}`} className="hover:text-[#0A558C] transition-colors">
-                  {business.phone}
+                <a href={`tel:${business.contact.phone}`} className="hover:text-[#0A558C] transition-colors">
+                  {business.contact.phone}
                 </a>
               </div>
-              {business.website && (
+              {business.contact.website && (
                 <div className="flex items-center gap-3">
                   <Globe className="h-5 w-5 text-[#0A558C]" />
                   <a
-                    href={`https://${business.website}`}
+                    href={`https://${business.contact.website}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-[#0A558C] transition-colors"
                   >
-                    {business.website}
+                    {business.contact.website}
                   </a>
                 </div>
               )}
@@ -285,9 +259,9 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
                   <CardContent>
                     <p className="text-muted-foreground mb-4">{business.description}</p>
                     <div className="flex flex-wrap gap-2">
-                      {business.features.map((feature) => (
-                        <Badge key={feature} variant="outline">
-                          {feature}
+                      {business.services.map((service) => (
+                        <Badge key={service} variant="outline">
+                          {service}
                         </Badge>
                       ))}
                     </div>
@@ -368,9 +342,9 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
           <TabsContent value="reviews" className="mt-8">
             <ReviewSystem
               businessId={business.id}
-              reviews={reviewsData}
-              averageRating={business.rating}
-              totalReviews={business.reviews}
+              reviews={[]}
+              averageRating={business.stats?.rating || 0}
+              totalReviews={business.stats?.reviews || 0}
             />
           </TabsContent>
 
@@ -383,21 +357,21 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
                 <CardContent className="space-y-4">
                   <div>
                     <div className="font-medium mb-1">Address</div>
-                    <div className="text-muted-foreground">{business.location}</div>
+                    <div className="text-muted-foreground">{business.location.address}</div>
                   </div>
                   <div>
                     <div className="font-medium mb-1">Phone</div>
-                    <div className="text-muted-foreground">{business.phone}</div>
+                    <div className="text-muted-foreground">{business.contact.phone}</div>
                   </div>
-                  {business.website && (
+                  {business.contact.website && (
                     <div>
                       <div className="font-medium mb-1">Website</div>
-                      <div className="text-muted-foreground">{business.website}</div>
+                      <div className="text-muted-foreground">{business.contact.website}</div>
                     </div>
                   )}
                   <div>
                     <div className="font-medium mb-1">Email</div>
-                    <div className="text-muted-foreground">{business.email}</div>
+                    <div className="text-muted-foreground">{business.contact.email}</div>
                   </div>
                 </CardContent>
               </Card>
@@ -408,10 +382,10 @@ export default function BusinessDetailPage({ params }: { params: Promise<{ id: s
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-2">
-                    {business.features.map((feature) => (
-                      <div key={feature} className="flex items-center gap-2">
+                    {business.services.map((service) => (
+                      <div key={service} className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-green-500 rounded-full" />
-                        <span className="text-sm">{feature}</span>
+                        <span className="text-sm">{service}</span>
                       </div>
                     ))}
                   </div>

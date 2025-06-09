@@ -47,106 +47,6 @@ export default function BusinessesPage() {
   const [fromCache, setFromCache] = useState(false)
   const { isOnline } = useOffline()
 
-  const mockBusinesses = useMemo(() => [
-    {
-      id: 1,
-      name: "The Coffee Corner",
-      category: "Café",
-      rating: 4.8,
-      reviews: 124,
-      image: "/placeholder.svg?height=200&width=300",
-      location: "123 Main St, Downtown",
-      phone: "(555) 123-4567",
-      website: "coffeecorner.com",
-      hours: "Mon-Fri 6AM-8PM, Sat-Sun 7AM-9PM",
-      description:
-        "Artisan coffee and fresh pastries in the heart of the city. Known for our signature roasts and cozy atmosphere.",
-      tags: ["Coffee", "Pastries", "WiFi", "Pet Friendly"],
-      distance: "0.2 miles",
-      priceRange: "$$",
-    },
-    {
-      id: 2,
-      name: "Green Valley Fitness",
-      category: "Gym",
-      rating: 4.6,
-      reviews: 89,
-      image: "/placeholder.svg?height=200&width=300",
-      location: "456 Oak Ave, Westside",
-      phone: "(555) 234-5678",
-      website: "greenvalleyfitness.com",
-      hours: "Mon-Fri 5AM-11PM, Sat-Sun 6AM-10PM",
-      description: "Modern fitness center with personal training services and state-of-the-art equipment.",
-      tags: ["Gym", "Personal Training", "Classes", "Parking"],
-      distance: "1.1 miles",
-      priceRange: "$$$",
-    },
-    {
-      id: 3,
-      name: "Bella's Italian Kitchen",
-      category: "Restaurant",
-      rating: 4.9,
-      reviews: 203,
-      image: "/placeholder.svg?height=200&width=300",
-      location: "789 Pine St, Little Italy",
-      phone: "(555) 345-6789",
-      website: "bellasitalian.com",
-      hours: "Tue-Sun 5PM-10PM, Closed Mondays",
-      description: "Authentic Italian cuisine with family recipes passed down through generations.",
-      tags: ["Italian", "Family Owned", "Wine Bar", "Reservations"],
-      distance: "0.8 miles",
-      priceRange: "$$$",
-    },
-    {
-      id: 4,
-      name: "Tech Repair Solutions",
-      category: "Services",
-      rating: 4.7,
-      reviews: 67,
-      image: "/placeholder.svg?height=200&width=300",
-      location: "321 Elm St, Tech District",
-      phone: "(555) 456-7890",
-      website: "techrepairsolutions.com",
-      hours: "Mon-Fri 9AM-6PM, Sat 10AM-4PM",
-      description: "Professional computer and smartphone repair services with same-day turnaround.",
-      tags: ["Computer Repair", "Phone Repair", "Data Recovery", "Warranty"],
-      distance: "1.5 miles",
-      priceRange: "$$",
-    },
-    {
-      id: 5,
-      name: "Sunset Yoga Studio",
-      category: "Health & Fitness",
-      rating: 4.8,
-      reviews: 156,
-      image: "/placeholder.svg?height=200&width=300",
-      location: "654 Beach Blvd, Oceanside",
-      phone: "(555) 567-8901",
-      website: "sunsetyoga.com",
-      hours: "Mon-Sun 6AM-9PM",
-      description: "Peaceful yoga studio offering various classes for all skill levels with ocean views.",
-      tags: ["Yoga", "Meditation", "Ocean View", "Beginner Friendly"],
-      distance: "2.3 miles",
-      priceRange: "$$",
-    },
-    {
-      id: 6,
-      name: "Downtown Books & More",
-      category: "Retail",
-      rating: 4.5,
-      reviews: 92,
-      image: "/placeholder.svg?height=200&width=300",
-      location: "987 Central Ave, Downtown",
-      phone: "(555) 678-9012",
-      website: "downtownbooks.com",
-      hours: "Mon-Sat 9AM-8PM, Sun 11AM-6PM",
-      description: "Independent bookstore with curated selection and cozy reading nooks.",
-      tags: ["Books", "Local Authors", "Events", "Coffee"],
-      distance: "0.4 miles",
-      priceRange: "$",
-    },
-  ], [])
-
   const [page, setPage] = useState(1)
   const displayedBusinesses = useMemo(() => businesses.slice(0, page * 25), [businesses, page])
   const displayedBusinessesWithDistance = useMemo(() => {
@@ -158,68 +58,39 @@ export default function BusinessesPage() {
   const loadMoreBusinesses = () => setPage((prev) => prev + 1)
 
   const loadBusinesses = useCallback(async () => {
+    if (!isOnline) {
+      return
+    }
     try {
       setLoading(true)
-
-      if (isOnline) {
-        // Make real API call to fetch businesses
-        const params = new URLSearchParams()
-        if (userLocation) {
-          params.append('lat', userLocation.lat.toString())
-          params.append('lng', userLocation.lng.toString())
-          params.append('radius', '10') // 10km radius
-        }
-        if (selectedCategory && selectedCategory !== 'all') {
-          params.append('category', selectedCategory)
-        }
-        params.append('limit', '50')
-
-        const response = await fetch(`/api/businesses?${params.toString()}`)
-
-        if (response.ok) {
-          const data = await response.json()
-          const businessList = data.data?.businesses || []
-          setBusinesses(businessList)
-          setFromCache(false)
-
-          // Cache the fresh data
-          await offlineCache.cacheBusinesses(businessList as Array<Record<string, unknown>>, userLocation || undefined)
-        } else {
-          throw new Error('Failed to fetch businesses')
-        }
+      const params = new URLSearchParams()
+      if (userLocation) {
+        params.append('lat', userLocation.lat.toString())
+        params.append('lng', userLocation.lng.toString())
+        params.append('radius', '10')
+      }
+      if (selectedCategory && selectedCategory !== 'all') {
+        params.append('category', selectedCategory)
+      }
+      params.append('limit', '100')
+      const response = await fetch(`/api/businesses?${params.toString()}`)
+      if (response.ok) {
+        const data = await response.json()
+        setBusinesses(data.data?.businesses || [])
+        setFromCache(false)
       } else {
-        // Load from cache when offline
-        const cachedBusinesses = await offlineCache.getCachedBusinesses(userLocation || undefined)
-        setBusinesses(cachedBusinesses as unknown as Business[])
-        setFromCache(true)
+        throw new Error('Failed to fetch businesses')
       }
     } catch (error) {
-      console.error("Failed to load businesses:", error)
-
-      // Fallback to cache if online request fails
-      if (isOnline) {
-        try {
-          const cachedBusinesses = await offlineCache.getCachedBusinesses(userLocation || undefined)
-          setBusinesses(cachedBusinesses as unknown as Business[])
-          setFromCache(true)
-        } catch (cacheError) {
-          console.error("Cache fallback failed:", cacheError)
-          // If all else fails, show mock data as last resort
-          setBusinesses(mockBusinesses)
-          setFromCache(false)
-        }
-      }
+      console.error('Failed to load businesses:', error)
+      setBusinesses([])
     } finally {
       setLoading(false)
     }
-  }, [isOnline, userLocation, selectedCategory, mockBusinesses])
-
-  // Load businesses data (online or cached)
+  }, [userLocation, selectedCategory, isOnline])
   useEffect(() => {
     loadBusinesses()
   }, [loadBusinesses])
-
-  // Load cached user location on mount
   useEffect(() => {
     loadCachedLocation()
   }, [])
@@ -473,8 +344,8 @@ export default function BusinessesPage() {
 
         {/* Business Grid */}
         {!loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
-            {displayedBusinessesWithDistance.slice(0, 25).map((business) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {displayedBusinessesWithDistance.slice(0, 20).map((business) => (
               <Card
                 key={business.id}
                 className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-2 md:p-3 text-xs md:text-sm rounded-lg"

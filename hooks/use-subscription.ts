@@ -63,20 +63,6 @@ const mockSubscription: UserSubscription = {
   updatedAt: new Date()
 }
 
-const mockBusinessProfile: BusinessProfile = {
-  id: "business_123",
-  userId: "user_123",
-  businessName: "Sample Business",
-  subscription: mockSubscription,
-  features: SUBSCRIPTION_PLANS.starter.features,
-  usage: {
-    photosUsed: 3,
-    menuItemsCount: 0,
-    appointmentsThisMonth: 0,
-    apiCallsThisMonth: 0
-  }
-}
-
 export function useSubscription(): UseSubscriptionReturn {
   const [subscription, setSubscription] = useState<UserSubscription | null>(null)
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null)
@@ -91,7 +77,7 @@ export function useSubscription(): UseSubscriptionReturn {
         // TODO: Replace with actual API call
         await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
         setSubscription(mockSubscription)
-        setBusinessProfile(mockBusinessProfile)
+        // setBusinessProfile(mockBusinessProfile) // Removed mock business profile
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load subscription")
       } finally {

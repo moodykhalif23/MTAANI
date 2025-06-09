@@ -55,23 +55,6 @@ EOF
 docker-compose up -d
 ```
 
-### 2. Native Installation (Ubuntu/Debian)
-
-```bash
-# Add CouchDB repository
-curl -L https://couchdb.apache.org/repo/keys.asc | sudo apt-key add -
-echo "deb https://apache.jfrog.io/artifactory/couchdb-deb/ focal main" | sudo tee /etc/apt/sources.list.d/couchdb.list
-
-# Install CouchDB
-sudo apt update
-sudo apt install couchdb
-
-# Configure during installation:
-# - Standalone mode for single server
-# - Cluster mode for multiple servers
-# - Set admin credentials
-```
-
 ### 3. Initial Configuration
 
 ```bash

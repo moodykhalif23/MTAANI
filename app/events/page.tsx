@@ -154,7 +154,7 @@ export default function EventsPage() {
   }
 
   const [page, setPage] = useState(1)
-  const displayedEvents = useMemo(() => events.slice(0, page * 25), [events, page])
+  const displayedEvents = useMemo(() => events.slice(0, page * 20), [events, page])
   const displayedEventsWithDistance = useMemo(() => {
     if (userLocation) {
       return displayedEvents.map((event) => ({
@@ -419,33 +419,33 @@ export default function EventsPage() {
                 <p className="text-gray-600">{error}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4 xl:gap-5">
-              {sortEventsByDistance(displayedEventsWithDistance).slice(0, 25).map((event) => (
-                <Card
-                  key={event.id}
-                  className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-2 md:p-3 text-xs md:text-sm rounded-lg"
-                >
-                  <div className="aspect-[4/3] relative overflow-hidden rounded mb-1">
-                    <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-                  </div>
-                  <CardHeader className="pb-1 px-0">
-                    <CardTitle className="text-xs md:text-sm font-semibold group-hover:text-[#0A558C] mb-0.5 truncate">{event.title}</CardTitle>
-                    <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-600">
-                      <Calendar className="h-3 w-3 text-[#0A558C]" />
-                      <span>{event.date}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {sortEventsByDistance(displayedEventsWithDistance).slice(0, 20).map((event) => (
+                  <Card
+                    key={event.id}
+                    className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-0 shadow bg-white/90 backdrop-blur p-3 md:p-4 text-xs md:text-sm rounded-lg"
+                  >
+                    <div className="aspect-[4/3] relative overflow-hidden rounded mb-2">
+                      <Image src={event.image || "/placeholder.svg"} alt={event.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                     </div>
-                  </CardHeader>
-                  <CardContent className="px-0 pt-0 pb-1">
-                    {event.description && (
-                      <CardDescription className="mb-1 text-[10px] md:text-xs text-gray-600 line-clamp-2">{event.description}</CardDescription>
-                    )}
-                    <div className="flex items-center justify-between text-[10px] md:text-xs">
-                      <span className="flex items-center gap-1"><Users className="h-3 w-3 text-gray-400" />{event.attendees} attending</span>
-                      <span className="font-semibold text-[#0A558C]">{event.price}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    <CardHeader className="pb-2 px-0">
+                      <CardTitle className="text-sm md:text-base font-semibold group-hover:text-[#0A558C] mb-1 truncate">{event.title}</CardTitle>
+                      <div className="flex items-center gap-1 text-[10px] md:text-xs text-gray-600">
+                        <Calendar className="h-3 w-3 text-[#0A558C]" />
+                        <span>{event.date}</span>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="px-0 pt-0 pb-2">
+                      {event.description && (
+                        <CardDescription className="mb-1 text-[10px] md:text-xs text-gray-600 line-clamp-2">{event.description}</CardDescription>
+                      )}
+                      <div className="flex items-center justify-between text-[10px] md:text-xs">
+                        <span className="flex items-center gap-1"><Users className="h-3 w-3 text-gray-400" />{event.attendees} attending</span>
+                        <span className="font-semibold text-[#0A558C]">{event.price}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             )}
           </TabsContent>
