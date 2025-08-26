@@ -27,6 +27,23 @@ export class EventService {
         await couchdb.createIndex(this.dbName, ['type', 'category', 'status', 'isDeleted'])
       } catch {}
     }
+    // Ensure required sort indexes exist even if DB already existed
+    try {
+      const indexes = await couchdb.listIndexes(this.dbName)
+      const hasStartDateSort = indexes.indexes?.some((idx) =>
+        idx.def?.fields?.some((field) => Object.prototype.hasOwnProperty.call(field, 'schedule.startDate')),
+      )
+      if (!hasStartDateSort) {
+        await couchdb.createIndex(this.dbName, ['schedule.startDate'])
+      }
+
+      const hasTypeIsDeleted = indexes.indexes?.some((idx) =>
+        JSON.stringify(idx.def?.fields || []).includes('type') && JSON.stringify(idx.def?.fields || []).includes('isDeleted'),
+      )
+      if (!hasTypeIsDeleted) {
+        await couchdb.createIndex(this.dbName, ['type', 'isDeleted'])
+      }
+    } catch {}
     this.databaseChecked = true
   }
 
@@ -78,6 +95,7 @@ export class EventService {
           timezone: 'Africa/Nairobi'
         },
         location: {
+          type: 'physical',
           venue: eventData.location,
           address: eventData.address,
           coordinates: [0, 0] // Will be geocoded later
@@ -118,7 +136,7 @@ export class EventService {
       if (response.ok) {
         // Log event creation
         securityAudit.logEvent(
-          'event_creation',
+          'api_access',
           'low',
           'Event created',
           {
@@ -288,7 +306,7 @@ export class EventService {
 
       if (response.ok) {
         securityAudit.logEvent(
-          'event_deletion',
+          'suspicious_activity',
           'medium',
           'Event deleted',
           { eventId, deletedBy, reason },

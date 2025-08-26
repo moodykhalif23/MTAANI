@@ -152,7 +152,7 @@ export class CouchDBClient {
 
   async createDocument<T extends CouchDBDocument>(
     dbName: string,
-    doc: Omit<T, '_id' | '_rev'>
+    doc: Omit<T, '_id' | '_rev' | 'createdAt' | 'updatedAt'>
   ): Promise<CouchDBResponse> {
     const docWithTimestamps = {
       ...doc,
@@ -255,6 +255,20 @@ export class CouchDBClient {
   }
 
   // Index operations
+  async listIndexes(
+    dbName: string
+  ): Promise<{
+    total_rows: number
+    indexes: Array<{
+      name: string
+      ddoc?: string
+      type: string
+      def: { fields: Array<Record<string, string>> }
+    }>
+  }> {
+    return this.request('GET', `/${dbName}/_index`)
+  }
+
   async createIndex(
     dbName: string,
     fields: string[],

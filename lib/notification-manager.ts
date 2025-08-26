@@ -51,6 +51,16 @@ class NotificationManager {
         })
       }
 
+      // Ensure the registration is active and controlling this page
+      try {
+        const readyRegistration = await navigator.serviceWorker.ready
+        if (readyRegistration) {
+          this.serviceWorkerRegistration = readyRegistration
+        }
+      } catch {
+        // Ignore; we'll fall back to existing registration
+      }
+
       // Update permission status
       this.notificationPermission = Notification.permission
 
@@ -89,13 +99,26 @@ class NotificationManager {
   }
 
   async subscribeToPush(): Promise<PushSubscription | null> {
-    if (!this.isSecureContext || !this.serviceWorkerRegistration) {
+    if (!this.isSecureContext) {
       console.log("Push notifications require HTTPS and service worker")
       return null
     }
 
+    // Ensure we have a controlling, ready registration
+    if (!this.serviceWorkerRegistration) {
+      try {
+        this.serviceWorkerRegistration = await navigator.serviceWorker.ready
+      } catch {
+        console.log("Service worker not ready yet")
+        return null
+      }
+    }
+
     // Wait for the service worker to be activated
-    const sw = this.serviceWorkerRegistration.active || this.serviceWorkerRegistration.waiting || this.serviceWorkerRegistration.installing;
+    const sw =
+      this.serviceWorkerRegistration.active ||
+      this.serviceWorkerRegistration.waiting ||
+      this.serviceWorkerRegistration.installing
     if (sw && sw.state !== "activated") {
       await new Promise<void>((resolve) => {
         const listener = () => {
@@ -109,6 +132,12 @@ class NotificationManager {
     }
 
     try {
+      // Reuse existing subscription if present
+      const existingSubscription = await this.serviceWorkerRegistration.pushManager.getSubscription()
+      if (existingSubscription) {
+        return existingSubscription
+      }
+
       const subscription = await this.serviceWorkerRegistration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey),

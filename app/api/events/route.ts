@@ -35,6 +35,21 @@ export async function GET(request: NextRequest) {
     const result = await eventService.findEvents(filters, { limit, skip })
 
     if (!result.success) {
+      // Graceful fallback for public requests: return empty list instead of error
+      if (!isAdminRequest) {
+        console.warn('Events API fallback: returning empty list due to backend error for public request')
+        return NextResponse.json({
+          success: true,
+          data: {
+            events: [],
+            total: 0,
+            limit,
+            skip
+          },
+          warning: 'Events temporarily unavailable'
+        })
+      }
+
       return NextResponse.json(
         { error: result.error || 'Failed to fetch events' },
         { status: 500 }
