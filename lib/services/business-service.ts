@@ -1,9 +1,25 @@
 import { couchdb } from '../couchdb'
+import config from '../config/environment'
 import { BusinessDocument } from '../models'
 import { securityAudit } from '../security-audit'
 
 export class BusinessService {
-  private readonly dbName = 'mtaani'
+  private readonly dbName = config.database.database || 'mtaani'
+
+  private databaseChecked = false
+
+  private async ensureDatabase(): Promise<void> {
+    if (this.databaseChecked) return
+    const exists = await couchdb.databaseExists(this.dbName)
+    if (!exists) {
+      await couchdb.createDatabase(this.dbName)
+      try { await couchdb.createIndex(this.dbName, ['type', 'isDeleted']) } catch {}
+      try { await couchdb.createIndex(this.dbName, ['type', 'ownerId', 'isDeleted']) } catch {}
+      try { await couchdb.createIndex(this.dbName, ['type', 'category', 'location.county', 'status', 'isDeleted']) } catch {}
+      try { await couchdb.createIndex(this.dbName, ['type', 'name', 'ownerId', 'isDeleted']) } catch {}
+    }
+    this.databaseChecked = true
+  }
 
   // Create a new business
   async createBusiness(businessData: {
@@ -20,6 +36,7 @@ export class BusinessService {
     coordinates: [number, number]
   }): Promise<{ success: boolean; businessId?: string; error?: string }> {
     try {
+      await this.ensureDatabase()
       // Check if business name already exists for this owner
       const existingBusiness = await this.findBusinessByNameAndOwner(businessData.name, businessData.ownerId)
       if (existingBusiness) {
@@ -107,6 +124,7 @@ export class BusinessService {
   // Find business by ID
   async findBusinessById(businessId: string): Promise<BusinessDocument | null> {
     try {
+      await this.ensureDatabase()
       const business = await couchdb.getDocument<BusinessDocument>(this.dbName, businessId)
       return business.isDeleted ? null : business
     } catch (error) {
@@ -118,6 +136,7 @@ export class BusinessService {
   // Find business by name and owner
   async findBusinessByNameAndOwner(name: string, ownerId: string): Promise<BusinessDocument | null> {
     try {
+      await this.ensureDatabase()
       const result = await couchdb.find<BusinessDocument>(this.dbName, {
         type: 'business',
         name: name.trim(),
@@ -137,6 +156,7 @@ export class BusinessService {
   // Find businesses by owner
   async findBusinessesByOwner(ownerId: string): Promise<BusinessDocument[]> {
     try {
+      await this.ensureDatabase()
       const result = await couchdb.find<BusinessDocument>(this.dbName, {
         type: 'business',
         ownerId,
@@ -166,6 +186,7 @@ export class BusinessService {
     skip?: number
   }): Promise<{ businesses: BusinessDocument[]; total: number }> {
     try {
+      await this.ensureDatabase()
       const selector: Record<string, unknown> = {
         type: 'business',
         isDeleted: false
@@ -235,6 +256,7 @@ export class BusinessService {
     updatedBy: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      await this.ensureDatabase()
       const business = await this.findBusinessById(businessId)
       if (!business) {
         return { success: false, error: 'Business not found' }
@@ -277,6 +299,7 @@ export class BusinessService {
     increment: number = 1
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      await this.ensureDatabase()
       const business = await this.findBusinessById(businessId)
       if (!business) {
         return { success: false, error: 'Business not found' }
@@ -308,6 +331,7 @@ export class BusinessService {
     reason?: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      await this.ensureDatabase()
       const business = await this.findBusinessById(businessId)
       if (!business) {
         return { success: false, error: 'Business not found' }
@@ -352,6 +376,7 @@ export class BusinessService {
     reason?: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      await this.ensureDatabase()
       const business = await this.findBusinessById(businessId)
       if (!business) {
         return { success: false, error: 'Business not found' }
@@ -392,6 +417,7 @@ export class BusinessService {
     limit: number = 20
   ): Promise<BusinessDocument[]> {
     try {
+      await this.ensureDatabase()
       const selector: Record<string, unknown> = {
         type: 'business',
         category,
@@ -421,6 +447,7 @@ export class BusinessService {
     options: { limit?: number; skip?: number } = {}
   ): Promise<{ success: boolean; businesses?: BusinessDocument[]; total?: number; error?: string }> {
     try {
+      await this.ensureDatabase()
       const selector: Record<string, unknown> = {
         type: 'business',
         isDeleted: false,

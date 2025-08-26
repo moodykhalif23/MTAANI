@@ -1,4 +1,5 @@
 import { couchdb } from '../couchdb'
+import config from '../config/environment'
 import { BusinessDocument, EventDocument } from '../models'
 
 export interface SearchIndex {
@@ -51,11 +52,29 @@ export interface SearchResult {
 }
 
 class SearchIndexService {
-  private readonly dbName = 'mtaani'
+  private readonly dbName = config.database.database || 'mtaani'
+
+  private databaseChecked = false
+
+  private async ensureDatabase(): Promise<void> {
+    if (this.databaseChecked) return
+    const exists = await couchdb.databaseExists(this.dbName)
+    if (!exists) {
+      await couchdb.createDatabase(this.dbName)
+      try { await couchdb.createIndex(this.dbName, ['type']) } catch {}
+      try { await couchdb.createIndex(this.dbName, ['type', 'entityType']) } catch {}
+      try { await couchdb.createIndex(this.dbName, ['type', 'category']) } catch {}
+      try { await couchdb.createIndex(this.dbName, ['type', 'location.county', 'location.town']) } catch {}
+      try { await couchdb.createIndex(this.dbName, ['type', 'verified']) } catch {}
+      try { await couchdb.createIndex(this.dbName, ['type', 'popularity', 'rating', 'updatedAt']) } catch {}
+    }
+    this.databaseChecked = true
+  }
 
   // Build search index for a business
   async indexBusiness(business: BusinessDocument): Promise<void> {
     try {
+      await this.ensureDatabase()
       const searchTerms = this.extractSearchTerms(business)
       const keywords = this.extractKeywords(business)
 
@@ -90,6 +109,7 @@ class SearchIndexService {
   // Build search index for an event
   async indexEvent(event: EventDocument): Promise<void> {
     try {
+      await this.ensureDatabase()
       const searchTerms = this.extractEventSearchTerms(event)
       const keywords = this.extractEventKeywords(event)
 
@@ -130,6 +150,7 @@ class SearchIndexService {
     skip?: number
   }): Promise<{ results: SearchResult[]; suggestions: SearchSuggestion[]; total: number }> {
     try {
+      await this.ensureDatabase()
       const { query, location, category, type = 'all', verified, limit = 20, skip = 0 } = params
 
       // Build search selector

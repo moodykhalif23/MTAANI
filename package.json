@@ -83,6 +83,7 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.2.1",
     "eslint": "^9.27.0",
     "eslint-config-next": "15.3.2",
     "husky": "^8.0.0",

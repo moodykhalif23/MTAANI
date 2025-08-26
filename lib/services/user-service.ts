@@ -1,10 +1,24 @@
 import { couchdb } from '../couchdb'
+import config from '../config/environment'
 import { UserDocument } from '../models'
 import { hashPassword, verifyPassword } from '../password'
 import { securityAudit } from '../security-audit'
 
 export class UserService {
-  private readonly dbName = 'mtaani'
+  private readonly dbName = config.database.database || 'mtaani'
+
+  private databaseChecked = false
+
+  private async ensureDatabase(): Promise<void> {
+    if (this.databaseChecked) return
+    const exists = await couchdb.databaseExists(this.dbName)
+    if (!exists) {
+      await couchdb.createDatabase(this.dbName)
+      try { await couchdb.createIndex(this.dbName, ['type', 'email']) } catch {}
+      try { await couchdb.createIndex(this.dbName, ['type', 'isDeleted']) } catch {}
+    }
+    this.databaseChecked = true
+  }
 
   // Create a new user
   async createUser(userData: {
@@ -16,6 +30,7 @@ export class UserService {
     registrationUserAgent: string
   }): Promise<{ success: boolean; userId?: string; error?: string }> {
     try {
+      await this.ensureDatabase()
       // Check if user already exists
       const existingUser = await this.findUserByEmail(userData.email)
       if (existingUser) {
@@ -85,6 +100,7 @@ export class UserService {
   // Find user by email
   async findUserByEmail(email: string): Promise<UserDocument | null> {
     try {
+      await this.ensureDatabase()
       const result = await couchdb.find<UserDocument>(this.dbName, {
         type: 'user',
         email: email.toLowerCase(),
@@ -103,6 +119,7 @@ export class UserService {
   // Find user by ID
   async findUserById(userId: string): Promise<UserDocument | null> {
     try {
+      await this.ensureDatabase()
       const user = await couchdb.getDocument<UserDocument>(this.dbName, userId)
       return user.isDeleted ? null : user
     } catch (error) {
@@ -119,6 +136,7 @@ export class UserService {
     userAgent: string
   ): Promise<{ success: boolean; user?: UserDocument; error?: string }> {
     try {
+      await this.ensureDatabase()
       const user = await this.findUserByEmail(email)
 
       if (!user) {
@@ -195,6 +213,7 @@ export class UserService {
     updatedBy?: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      await this.ensureDatabase()
       const user = await this.findUserById(userId)
       if (!user) {
         return { success: false, error: 'User not found' }
@@ -222,6 +241,7 @@ export class UserService {
     reason?: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      await this.ensureDatabase()
       const user = await this.findUserById(userId)
       if (!user) {
         return { success: false, error: 'User not found' }
@@ -260,6 +280,7 @@ export class UserService {
     token: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      await this.ensureDatabase()
       const user = await this.findUserById(userId)
       if (!user) {
         return { success: false, error: 'User not found' }
@@ -304,6 +325,7 @@ export class UserService {
     newPassword: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      await this.ensureDatabase()
       const user = await this.findUserById(userId)
       if (!user) {
         return { success: false, error: 'User not found' }
@@ -351,6 +373,7 @@ export class UserService {
   // Private helper methods
   private async incrementLoginAttempts(user: UserDocument): Promise<void> {
     try {
+      await this.ensureDatabase()
       const attempts = user.loginAttempts + 1
       const shouldLock = attempts >= 5 // Lock after 5 failed attempts
 
@@ -373,6 +396,7 @@ export class UserService {
     userAgent: string
   ): Promise<void> {
     try {
+      await this.ensureDatabase()
       const updatedUser: UserDocument = {
         ...user,
         loginAttempts: 0,

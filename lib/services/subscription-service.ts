@@ -1,10 +1,25 @@
 import { couchdb } from '../couchdb'
+import config from '../config/environment'
 import { SubscriptionDocument } from '../models'
 import { securityAudit } from '../security-audit'
 import { SubscriptionPlan } from '../subscription-types'
 
 export class SubscriptionService {
-  private readonly dbName = 'mtaani'
+  private readonly dbName = config.database.database || 'mtaani'
+
+  private databaseChecked = false
+
+  private async ensureDatabase(): Promise<void> {
+    if (this.databaseChecked) return
+    const exists = await couchdb.databaseExists(this.dbName)
+    if (!exists) {
+      await couchdb.createDatabase(this.dbName)
+      try { await couchdb.createIndex(this.dbName, ['type', 'isDeleted']) } catch {}
+      try { await couchdb.createIndex(this.dbName, ['type', 'userId', 'isDeleted']) } catch {}
+      try { await couchdb.createIndex(this.dbName, ['type', 'businessId', 'isDeleted']) } catch {}
+    }
+    this.databaseChecked = true
+  }
 
   // Create a new subscription
   async createSubscription(subscriptionData: {
@@ -19,6 +34,7 @@ export class SubscriptionService {
     trialDays?: number
   }): Promise<{ success: boolean; subscriptionId?: string; error?: string }> {
     try {
+      await this.ensureDatabase()
       const now = new Date()
       const trialEnd = subscriptionData.isTrialing
         ? new Date(now.getTime() + (subscriptionData.trialDays || 14) * 24 * 60 * 60 * 1000)
@@ -87,6 +103,7 @@ export class SubscriptionService {
   // Find subscription by user ID
   async findSubscriptionByUserId(userId: string): Promise<SubscriptionDocument | null> {
     try {
+      await this.ensureDatabase()
       const result = await couchdb.find<SubscriptionDocument>(this.dbName, {
         type: 'subscription',
         userId,
@@ -106,6 +123,7 @@ export class SubscriptionService {
   // Find subscription by business ID
   async findSubscriptionByBusinessId(businessId: string): Promise<SubscriptionDocument | null> {
     try {
+      await this.ensureDatabase()
       const result = await couchdb.find<SubscriptionDocument>(this.dbName, {
         type: 'subscription',
         businessId,
@@ -129,6 +147,7 @@ export class SubscriptionService {
     increment: number
   ): Promise<{ success: boolean; withinLimits: boolean; error?: string }> {
     try {
+      await this.ensureDatabase()
       const subscription = await couchdb.getDocument<SubscriptionDocument>(this.dbName, subscriptionId)
 
       if (!subscription || subscription.isDeleted) {
@@ -174,6 +193,7 @@ export class SubscriptionService {
     paymentMethodId?: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      await this.ensureDatabase()
       const subscription = await couchdb.getDocument<SubscriptionDocument>(this.dbName, subscriptionId)
 
       if (!subscription || subscription.isDeleted) {
@@ -223,6 +243,7 @@ export class SubscriptionService {
     reason?: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      await this.ensureDatabase()
       const subscription = await couchdb.getDocument<SubscriptionDocument>(this.dbName, subscriptionId)
 
       if (!subscription || subscription.isDeleted) {
@@ -301,6 +322,7 @@ export class SubscriptionService {
     reason?: string
   }> {
     try {
+      await this.ensureDatabase()
       // Find subscription by business ID first, then user ID
       let subscription = businessId
         ? await this.findSubscriptionByBusinessId(businessId)

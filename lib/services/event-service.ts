@@ -1,9 +1,34 @@
 import { couchdb } from '../couchdb'
+import config from '../config/environment'
 import { EventDocument } from '../models'
 import { securityAudit } from '../security-audit'
 
 export class EventService {
-  private readonly dbName = 'mtaani'
+  private readonly dbName = config.database.database || 'mtaani'
+
+  private databaseChecked = false
+
+  private async ensureDatabase(): Promise<void> {
+    if (this.databaseChecked) return
+    const exists = await couchdb.databaseExists(this.dbName)
+    if (!exists) {
+      await couchdb.createDatabase(this.dbName)
+      // Create essential indexes used by queries
+      try {
+        await couchdb.createIndex(this.dbName, ['type', 'isDeleted'])
+      } catch {}
+      try {
+        await couchdb.createIndex(this.dbName, ['type', 'isDeleted', 'schedule.startDate'])
+      } catch {}
+      try {
+        await couchdb.createIndex(this.dbName, ['type', 'status', 'isDeleted'])
+      } catch {}
+      try {
+        await couchdb.createIndex(this.dbName, ['type', 'category', 'status', 'isDeleted'])
+      } catch {}
+    }
+    this.databaseChecked = true
+  }
 
   // Create a new event
   async createEvent(eventData: {
@@ -35,6 +60,7 @@ export class EventService {
     specialRequirements?: string
   }): Promise<{ success: boolean; eventId?: string; error?: string }> {
     try {
+      await this.ensureDatabase()
       // Create event document
       const eventDoc: Omit<EventDocument, '_id' | '_rev' | 'createdAt' | 'updatedAt'> = {
         type: 'event',
@@ -116,6 +142,7 @@ export class EventService {
   // Find event by ID
   async findEventById(eventId: string): Promise<EventDocument | null> {
     try {
+      await this.ensureDatabase()
       const event = await couchdb.getDocument<EventDocument>(this.dbName, eventId)
       return event.isDeleted ? null : event
     } catch (error) {
@@ -136,6 +163,7 @@ export class EventService {
     options: { limit?: number; skip?: number } = {}
   ): Promise<{ success: boolean; events?: EventDocument[]; total?: number; error?: string }> {
     try {
+      await this.ensureDatabase()
       const selector: Record<string, unknown> = {
         type: 'event',
         isDeleted: false,
@@ -166,6 +194,7 @@ export class EventService {
     reason?: string
   ): Promise<{ success: boolean; event?: EventDocument; error?: string }> {
     try {
+      await this.ensureDatabase()
       const event = await this.findEventById(eventId)
       if (!event) {
         return { success: false, error: 'Event not found' }
@@ -212,6 +241,7 @@ export class EventService {
     options: { limit?: number; skip?: number } = {}
   ): Promise<EventDocument[]> {
     try {
+      await this.ensureDatabase()
       const selector: Record<string, unknown> = {
         type: 'event',
         status: 'approved',
@@ -239,6 +269,7 @@ export class EventService {
     reason?: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
+      await this.ensureDatabase()
       const event = await this.findEventById(eventId)
       if (!event) {
         return { success: false, error: 'Event not found' }

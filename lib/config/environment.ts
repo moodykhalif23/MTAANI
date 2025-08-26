@@ -1,4 +1,10 @@
 import { z } from 'zod'
+import dotenv from 'dotenv'
+
+// Load environment variables for local/tsx execution
+// Prioritize .env.local, then fallback to .env
+dotenv.config({ path: '.env.local' })
+dotenv.config()
 
 // Environment validation schema
 const environmentSchema = z.object({
