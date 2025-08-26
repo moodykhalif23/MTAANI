@@ -31,6 +31,7 @@ services:
   couchdb:
     image: couchdb:3.3
     container_name: mtaani-couchdb
+    hostname: couchdb
     restart: unless-stopped
     ports:
       - "5984:5984"
@@ -38,7 +39,7 @@ services:
       - COUCHDB_USER=admin
       - COUCHDB_PASSWORD=secure_admin_password_2024
       - COUCHDB_SECRET=your_secret_key_here_32_chars_min
-      - NODENAME=couchdb@127.0.0.1
+      - NODENAME=couchdb
     volumes:
       - ./couchdb/data:/opt/couchdb/data
       - ./couchdb/config:/opt/couchdb/etc/local.d
