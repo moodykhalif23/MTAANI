@@ -74,12 +74,6 @@ export function AuthHeader() {
             >
               Calendar
             </Link>
-            <Link
-              href="/community"
-              className="text-sm font-medium text-gray-700 hover:text-[#0A558C] transition-colors duration-200"
-            >
-              Community
-            </Link>
           </nav>
 
           <div className="flex items-center space-x-3">

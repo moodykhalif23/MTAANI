@@ -9,6 +9,7 @@
     "lint": "next lint",
     "prepare": "husky install",
     "test": "next lint",
+    "test:e2e-approval": "tsx tests/e2e/approval-flow.test.ts",
     "setup:production-db": "tsx scripts/setup-production-db.ts",
     "setup:ssl": "sudo ./scripts/setup-ssl.sh",
     "validate:env": "tsx -e \"import { validateConfiguration } from './lib/config/environment'; validateConfiguration()\"",

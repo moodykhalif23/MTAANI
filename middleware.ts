@@ -41,7 +41,6 @@ const publicRoutes = [
   '/auth/reset-password',
   '/businesses',
   '/events',
-  '/community',
   '/calendar'
 ]
 

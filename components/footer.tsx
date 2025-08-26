@@ -38,11 +38,6 @@ export function Footer() {
                   Calendar
                 </Link>
               </li>
-              <li>
-                <Link href="/community" className="hover:text-[#0A558C] transition-colors duration-200">
-                  Community
-                </Link>
-              </li>
             </ul>
           </div>
 
